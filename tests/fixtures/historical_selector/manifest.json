@@ -1,0 +1,26 @@
+{
+  "repository": "bytedance/deer-flow",
+  "source_path": "backend/packages/harness/deerflow/models/selection.py",
+  "revisions": {
+    "original": {
+      "sha": "68c9fce5c424b0e96986a0ca365db73a1eef8196",
+      "file": "original_68c9fce5c4.py",
+      "sha256": "7b12ddd87ee6e7b26d76ec70e37a52aac0ccaaef4211fefb058e9c086a15ad4e"
+    },
+    "article_patch": {
+      "sha": "d67512b050eee17470adf168cc16e8576c92c81c",
+      "file": "article_patch_d67512b050.py",
+      "sha256": "12a6a3435053b45ab14cbde8fb9af9d4a6c74dde1b493c846d91879b8220af47"
+    },
+    "wordlist_patch": {
+      "sha": "2bc504b9ba670de04b2e8b78fe66e93141e906da",
+      "file": "wordlist_patch_2bc504b9ba.py",
+      "sha256": "da7b1cfac433dce3a7866625c2973b52f043cdcc9cf234bdfa935cea129888cd"
+    },
+    "catalog_fix": {
+      "sha": "3c510c8552d278013b9304899d88d68ea06751d6",
+      "file": "catalog_fix_3c510c8552.py",
+      "sha256": "1e602ae785c422c1f546070b340473f6e02a9cfb39e0722cffddd2331df845be"
+    }
+  }
+}

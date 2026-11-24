@@ -1,0 +1,34 @@
+{
+  "candidate_id": "skyvern-ai--skyvern--ff95fdbacbdca32e",
+  "repo": "Skyvern-AI/skyvern",
+  "base_sha": "b04c3f7fb4b2f60ab49c4de05e5324ef97bdda2d",
+  "user_scenario": "A Split PDF workflow receives a PDF containing many pages or dense identifier text; page excerpts are sent to the split planner.",
+  "expected_behavior": "The aggregate page-text payload respects MAX_FILE_PARSE_INPUT_TOKENS, or an oversized input is explicitly rejected before the model call.",
+  "observed_behavior": "The unmodified helper produces 693300 tokens for 300 dense pages and 275000 tokens for 1100 short pages against a 256000-token limit. A two-page control preserves its text and page numbers.",
+  "root_cause": "Per-page truncation slices characters after checking tokens; the 256-token minimum allocation also exceeds the global budget for enough pages. Neither branch bounds the aggregate.",
+  "entry_path": [
+    "SplitPdfBlock.execute lines 458-479 validates and reads the PDF without a page-count cap",
+    "_build_page_texts lines 178-190 computes the returned page payload",
+    "_request_split_plan lines 206-220 injects all page_texts into the split-pdf prompt and hands it to the configured LLM handler"
+  ],
+  "reachability": "proven",
+  "contract_sources": [
+    {
+      "url_or_path": "https://github.com/Skyvern-AI/skyvern/blob/b04c3f7fb4b2f60ab49c4de05e5324ef97bdda2d/skyvern/forge/sdk/workflow/models/split_pdf_block.py#L178",
+      "revision": "b04c3f7fb4b2f60ab49c4de05e5324ef97bdda2d",
+      "location": "_build_page_texts budget comment and allocation"
+    },
+    {
+      "url_or_path": "https://github.com/Skyvern-AI/skyvern/blob/b04c3f7fb4b2f60ab49c4de05e5324ef97bdda2d/skyvern/constants.py#L162",
+      "revision": "b04c3f7fb4b2f60ab49c4de05e5324ef97bdda2d",
+      "location": "MAX_FILE_PARSE_INPUT_TOKENS and concatenated-text limit comment"
+    }
+  ],
+  "preserved_behaviors": [
+    "Small PDF text is unchanged",
+    "Every input page remains identifiable; choosing rejection versus smaller per-page excerpts requires a maintainer decision"
+  ],
+  "design_uncertainties": [
+    "How to preserve meaningful excerpts for extremely many pages while respecting the aggregate cap; no implementation chosen"
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "defaults": {
+    "max_age_days": 14,
+    "max_candidates": 12
+  },
+  "repos": [
+    {
+      "name": "bytedance/deer-flow",
+      "lang": "python",
+      "priority": 1,
+      "paths": [
+        "backend/packages/harness/deerflow/models",
+        "backend/packages/harness/deerflow/mcp",
+        "backend/packages/harness/deerflow/sandbox",
+        "backend/packages/harness/deerflow/memory",
+        "backend/app/channels"
+      ],
+      "test": "cd backend && uv run pytest tests -x -q",
+      "setup": "cd backend && uv sync --all-extras"
+    },
+    {
+      "name": "agno-agi/agno",
+      "lang": "python",
+      "priority": 1,
+      "note": "External PRs must link an issue carrying the maintainer-assigned `ready` label.",
+      "paths": [
+        "libs/agno/agno/models",
+        "libs/agno/agno/tools",
+        "libs/agno/agno/memory",
+        "libs/agno/agno/run"
+      ],
+      "test": "PYTHONPATH=libs/agno uv run pytest libs/agno/tests/unit -x -q",
+      "setup": "uv venv .venv --python 3.12 && uv pip install -e libs/agno",
+      "monorepo": true
+    },
+    {
+      "name": "agentscope-ai/agentscope",
+      "lang": "python",
+      "priority": 1,
+      "paths": [
+        "src/agentscope/models",
+        "src/agentscope/tool",
+        "src/agentscope/memory",
+        "src/agentscope/pipeline"
+      ],
+      "test": "uv run pytest tests -x -q"
+    },
+    {
+      "name": "deepset-ai/haystack",
+      "lang": "python",
+      "priority": 1,
+      "paths": [
+        "haystack/components",
+        "haystack/core",
+        "haystack/dataclasses"
+      ],
+      "test": "uv run pytest test -x -q"
+    },
+    {
+      "name": "Skyvern-AI/skyvern",
+      "lang": "python",
+      "priority": 1,
+      "paths": [
+        "skyvern/forge/sdk",
+        "skyvern/webeye",
+        "skyvern/services"
+      ],
+      "test": "uv run pytest tests -x -q"
+    },
+    {
+      "name": "pydantic/pydantic-ai",
+      "lang": "python",
+      "priority": 2,
+      "paths": [
+        "pydantic_ai_slim/pydantic_ai/models",
+        "pydantic_ai_slim/pydantic_ai/tools.py"
+      ],
+      "test": "uv run pytest tests -q"
+    },
+    {
+      "name": "livekit/agents",
+      "lang": "python",
+      "priority": 2,
+      "paths": [
+        "livekit-agents/livekit/agents/llm",
+        "livekit-plugins"
+      ],
+      "test": "uv run pytest tests -x -q"
+    },
+    {
+      "name": "microsoft/agent-framework",
+      "lang": "python",
+      "priority": 2,
+      "paths": [
+        "python/packages/core/agent_framework"
+      ],
+      "test": "uv run pytest python/tests -x -q"
+    },
+    {
+      "name": "stanfordnlp/dspy",
+      "lang": "python",
+      "priority": 2,
+      "paths": [
+        "dspy/adapters",
+        "dspy/clients",
+        "dspy/predict",
+        "dspy/primitives"
+      ],
+      "test": "uv run pytest tests -x -q"
+    },
+    {
+      "name": "huggingface/smolagents",
+      "lang": "python",
+      "priority": 3,
+      "paths": [
+        "src/smolagents/models.py",
+        "src/smolagents/agents.py",
+        "src/smolagents/tools.py"
+      ],
+      "test": "uv run pytest tests -x -q"
+    },
+    {
+      "name": "run-llama/llama_index",
+      "lang": "python",
+      "priority": 3,
+      "paths": [
+        "llama-index-core/llama_index/core/agent",
+        "llama-index-core/llama_index/core/llms"
+      ],
+      "test": "uv run pytest llama-index-core/tests/agent -x -q"
+    },
+    {
+      "name": "NousResearch/hermes-agent",
+      "lang": "python",
+      "priority": 2,
+      "note": "CI Contributor Attribution Check requires `contributors/emails/<contributor-email>` mapping.",
+      "paths": [
+        "agent/transports",
+        "agent",
+        "hermes_cli",
+        "hermes_state",
+        "tools",
+        "cron"
+      ],
+      "test": "./scripts/run_tests.sh tests/test_base_url_hostname.py",
+      "setup": "python -m pm.build_env --source . --out .venv --group dev --group test"
+    },
+    {
+      "name": "openai/openai-agents-python",
+      "lang": "python",
+      "priority": 2,
+      "paths": [
+        "src/agents/models",
+        "src/agents/tool.py",
+        "src/agents/run.py"
+      ],
+      "test": "uv run pytest tests -x -q"
+    }
+  ],
+  "policy_source": "policies/repos.json"
+}

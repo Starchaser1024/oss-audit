@@ -1,0 +1,601 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-10-27T09:22:19Z",
+  "sample_clock": "2026-10-27T09:27:19Z",
+  "aliases": {
+    "modelscope/agentscope": "agentscope-ai/agentscope"
+  },
+  "defaults": {
+    "max_policy_age_hours": 168,
+    "max_context_age_minutes": 120
+  },
+  "repos": {
+    "livekit/agents": {
+      "canonical_repo": "livekit/agents",
+      "checked_at": "2026-10-27T09:22:19Z",
+      "source_status": "ok",
+      "max_policy_age_hours": 168,
+      "max_context_age_minutes": 120,
+      "sources": [
+        {
+          "url": "https://github.com/livekit/agents/blob/2df1de7db9ff56e152330de55e1667ba38052350/CONTRIBUTING.md",
+          "api_url": "https://api.github.com/repos/livekit/agents/contents/CONTRIBUTING.md",
+          "revision": "2df1de7db9ff56e152330de55e1667ba38052350",
+          "blob_sha": "d33c59007a9574313b9e3c4b442e2c59720ed318",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Contribute code / Fix bugs; Add new features",
+          "excerpt": "Fix bugs: follow the guidelines below for authoring pull requests. Add new features: open an issue first to discuss the viability and scope of the new functionality before starting work."
+        }
+      ],
+      "rules": {
+        "bugfix": {
+          "issue_required": false,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": false
+        },
+        "feature": {
+          "issue_required": true,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": true
+        },
+        "assignment_exempt_labels": [],
+        "required_labels": [],
+        "claim_comment_required": false,
+        "cla_required": true,
+        "ai_disclosure_required": false,
+        "paused": false,
+        "pause_reason": null,
+        "resume_conditions": [],
+        "issue_only": false,
+        "closed": false,
+        "issue_reporting_allowed": true,
+        "max_open_prs_per_contributor": null,
+        "required_any_labels": []
+      }
+    },
+    "PrefectHQ/fastmcp": {
+      "canonical_repo": "PrefectHQ/fastmcp",
+      "checked_at": "2026-10-27T09:22:19Z",
+      "source_status": "ok",
+      "max_policy_age_hours": 168,
+      "max_context_age_minutes": 120,
+      "sources": [
+        {
+          "url": "https://github.com/PrefectHQ/fastmcp/blob/75ee327562d6c4e7555d76b91ee3a25c71b85ac5/docs/development/contributing.mdx",
+          "api_url": "https://api.github.com/repos/PrefectHQ/fastmcp/contents/docs/development/contributing.mdx",
+          "revision": "75ee327562d6c4e7555d76b91ee3a25c71b85ac5",
+          "blob_sha": "44f0cd868cb72f887803798db7115e9bb0d64da9",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Issues and assignment",
+          "excerpt": "External PRs must link an issue with an auto-close keyword such as Fixes #123. The author must also be assigned to that issue, unless it carries the prs welcome label. You can open a linked PR before assignment; it waits with a failing gate check while maintainers evaluate it."
+        },
+        {
+          "url": "https://github.com/PrefectHQ/fastmcp/blob/455c911ba93a0046acd37d916960d40ec53733ed/CONTRIBUTING.md",
+          "api_url": "https://api.github.com/repos/PrefectHQ/fastmcp/contents/CONTRIBUTING.md",
+          "revision": "455c911ba93a0046acd37d916960d40ec53733ed",
+          "blob_sha": "84d4e10c28970e9aff9892e13155d900791fec33",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Contributing",
+          "excerpt": "Read the contributing guide for accepted contributions, issue assignment, development setup, tests, and review expectations."
+        }
+      ],
+      "rules": {
+        "bugfix": {
+          "issue_required": true,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": true,
+          "linked_pr_before_assignment_allowed": true,
+          "design_approval_required": false
+        },
+        "feature": {
+          "issue_required": true,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": true,
+          "linked_pr_before_assignment_allowed": true,
+          "design_approval_required": true
+        },
+        "assignment_exempt_labels": [
+          "prs welcome"
+        ],
+        "required_labels": [],
+        "claim_comment_required": false,
+        "cla_required": false,
+        "ai_disclosure_required": false,
+        "paused": false,
+        "pause_reason": null,
+        "resume_conditions": [],
+        "issue_only": false,
+        "closed": false,
+        "issue_reporting_allowed": true,
+        "max_open_prs_per_contributor": null,
+        "required_any_labels": []
+      }
+    },
+    "agno-agi/agno": {
+      "canonical_repo": "agno-agi/agno",
+      "checked_at": "2026-10-27T09:22:19Z",
+      "source_status": "ok",
+      "max_policy_age_hours": 168,
+      "max_context_age_minutes": 120,
+      "sources": [
+        {
+          "url": "https://github.com/agno-agi/agno/blob/c15c55ea7d405ac8bc3414536b6aab7dfc845bd1/CONTRIBUTING.md",
+          "api_url": "https://api.github.com/repos/agno-agi/agno/contents/CONTRIBUTING.md",
+          "revision": "c15c55ea7d405ac8bc3414536b6aab7dfc845bd1",
+          "blob_sha": "a6874a0650621dfaa800ac62eb3efcd8759790be",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Pull Request Guidelines / Link to a Ready Issue",
+          "excerpt": "Open an issue first and wait for a maintainer to triage it. Only start work once a maintainer has added the ready label. PRs from external contributors that don't link an issue, or whose linked issue is not labeled ready, are closed automatically."
+        }
+      ],
+      "rules": {
+        "bugfix": {
+          "issue_required": true,
+          "ready_label_required": true,
+          "ready_label": "ready",
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": false
+        },
+        "feature": {
+          "issue_required": true,
+          "ready_label_required": true,
+          "ready_label": "ready",
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": false
+        },
+        "assignment_exempt_labels": [],
+        "required_labels": [],
+        "claim_comment_required": false,
+        "cla_required": false,
+        "ai_disclosure_required": true,
+        "paused": false,
+        "pause_reason": null,
+        "resume_conditions": [],
+        "issue_only": false,
+        "closed": false,
+        "issue_reporting_allowed": true,
+        "max_open_prs_per_contributor": null,
+        "required_any_labels": []
+      }
+    },
+    "agentscope-ai/agentscope": {
+      "canonical_repo": "agentscope-ai/agentscope",
+      "checked_at": "2026-10-27T09:22:19Z",
+      "source_status": "ok",
+      "max_policy_age_hours": 168,
+      "max_context_age_minutes": 120,
+      "sources": [
+        {
+          "url": "https://github.com/agentscope-ai/agentscope/blob/d6e02f27b9c272b8f9d50dc7b9e8f546edf5af19/CONTRIBUTING.md",
+          "api_url": "https://api.github.com/repos/agentscope-ai/agentscope/contents/CONTRIBUTING.md",
+          "revision": "d6e02f27b9c272b8f9d50dc7b9e8f546edf5af19",
+          "blob_sha": "3d1c0ec12fca82463b659a9b23b72a7798107536",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Step 1. Claim or create an issue; Step 6. Open a pull request",
+          "excerpt": "Comment on the issue to claim it before starting. Open a new issue describing the problem for new work. Link the issue you claimed (Fixes #123 or Refs #123). Open an issue before non-trivial work; PRs that introduce a new agent class without prior discussion will be closed."
+        }
+      ],
+      "rules": {
+        "bugfix": {
+          "issue_required": true,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": false
+        },
+        "feature": {
+          "issue_required": true,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": true
+        },
+        "assignment_exempt_labels": [],
+        "required_labels": [],
+        "claim_comment_required": true,
+        "cla_required": false,
+        "ai_disclosure_required": false,
+        "paused": false,
+        "pause_reason": null,
+        "resume_conditions": [],
+        "issue_only": false,
+        "closed": false,
+        "issue_reporting_allowed": true,
+        "max_open_prs_per_contributor": null,
+        "required_any_labels": []
+      }
+    },
+    "deepset-ai/haystack": {
+      "canonical_repo": "deepset-ai/haystack",
+      "checked_at": "2026-10-27T09:22:19Z",
+      "source_status": "ok",
+      "max_policy_age_hours": 168,
+      "max_context_age_minutes": 120,
+      "sources": [
+        {
+          "url": "https://github.com/deepset-ai/haystack/blob/9f3981682c94b7660ecdb8c001ac61e7c779137c/CONTRIBUTING.md",
+          "api_url": "https://api.github.com/repos/deepset-ai/haystack/contents/CONTRIBUTING.md",
+          "revision": "9f3981682c94b7660ecdb8c001ac61e7c779137c",
+          "blob_sha": "5eae8dc60448a0819e9b06416ecd7743b687749d",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Your first PR; Requirements for Pull Requests; CLA",
+          "excerpt": "Pick an issue labeled good first issue or contributions wanted; avoid issues marked or commented as handled internally. Sign the CLA. If fully AI-generated, add a short disclaimer. Community contributors can have only one open pull request at a time."
+        }
+      ],
+      "rules": {
+        "bugfix": {
+          "issue_required": true,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": false
+        },
+        "feature": {
+          "issue_required": true,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": true
+        },
+        "assignment_exempt_labels": [],
+        "required_labels": [],
+        "claim_comment_required": false,
+        "cla_required": true,
+        "ai_disclosure_required": true,
+        "paused": false,
+        "pause_reason": null,
+        "resume_conditions": [],
+        "issue_only": false,
+        "closed": false,
+        "issue_reporting_allowed": true,
+        "max_open_prs_per_contributor": 1,
+        "required_any_labels": [
+          "good first issue",
+          "Contributions wanted!"
+        ]
+      }
+    },
+    "microsoft/agent-framework": {
+      "canonical_repo": "microsoft/agent-framework",
+      "checked_at": "2026-10-27T09:22:19Z",
+      "source_status": "ok",
+      "max_policy_age_hours": 168,
+      "max_context_age_minutes": 120,
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/agent-framework/blob/4dc30df5ced2a037bf748a7b3f00a7a15cf99cdf/CONTRIBUTING.md",
+          "api_url": "https://api.github.com/repos/microsoft/agent-framework/contents/CONTRIBUTING.md",
+          "revision": "4dc30df5ced2a037bf748a7b3f00a7a15cf99cdf",
+          "blob_sha": "74b7c71d926cc906cffda8c4285afe4d03b7c28f",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Before Opening a Pull Request",
+          "excerpt": "Except for trivial changes, create or reuse an issue before starting implementation. Wait for a maintainer to add the ready-for-implementation label or explicitly comment that the proposed direction is ready for implementation. Automated triage, issue assignment, reactions, and silence do not indicate approval."
+        },
+        {
+          "url": "https://github.com/microsoft/agent-framework/blob/ca936db37708539bd502240a48543f6094259ce5/AI_CONTRIBUTIONS.md",
+          "api_url": "https://api.github.com/repos/microsoft/agent-framework/contents/AI_CONTRIBUTIONS.md",
+          "revision": "ca936db37708539bd502240a48543f6094259ce5",
+          "blob_sha": "e94e69b1c9d6d5d1100120aabbe43b001e87a36d",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Disclose Material AI Assistance",
+          "excerpt": "Disclose material AI assistance in the issue or pull request description. Complete the AI Assistance section of the pull request template. The human contributor remains the accountable submitter."
+        }
+      ],
+      "rules": {
+        "bugfix": {
+          "issue_required": true,
+          "ready_label_required": true,
+          "ready_label": "ready-for-implementation",
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": false
+        },
+        "feature": {
+          "issue_required": true,
+          "ready_label_required": true,
+          "ready_label": "ready-for-implementation",
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": false
+        },
+        "assignment_exempt_labels": [],
+        "required_labels": [],
+        "claim_comment_required": false,
+        "cla_required": false,
+        "ai_disclosure_required": true,
+        "paused": false,
+        "pause_reason": null,
+        "resume_conditions": [],
+        "issue_only": false,
+        "closed": false,
+        "issue_reporting_allowed": true,
+        "max_open_prs_per_contributor": null,
+        "required_any_labels": []
+      }
+    },
+    "bytedance/deer-flow": {
+      "canonical_repo": "bytedance/deer-flow",
+      "checked_at": "2026-10-27T09:22:19Z",
+      "source_status": "ok",
+      "max_policy_age_hours": 168,
+      "max_context_age_minutes": 120,
+      "sources": [
+        {
+          "url": "https://github.com/bytedance/deer-flow/blob/9b89c7569d053ec1fbd25580361faf6e4e8bc997/CONTRIBUTING.md",
+          "api_url": "https://api.github.com/repos/bytedance/deer-flow/contents/CONTRIBUTING.md",
+          "revision": "9b89c7569d053ec1fbd25580361faf6e4e8bc997",
+          "blob_sha": "bfad721d2bbc1eeecd70c9b393e9e9b2ce761fe2",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "Development Workflow; AI assistance disclosure",
+          "excerpt": "Every pull request must complete the AI assistance section of the PR template: which tools were used, how, and a human responsibility confirmation."
+        },
+        {
+          "url": "https://github.com/bytedance/deer-flow/blob/22b0456e45341a4b7cb08848c6a8eb80e71a29f7/.github/pull_request_template.md",
+          "api_url": "https://api.github.com/repos/bytedance/deer-flow/contents/.github/pull_request_template.md",
+          "revision": "22b0456e45341a4b7cb08848c6a8eb80e71a29f7",
+          "blob_sha": "3c15182eca948a8d219979e073f646e39c2f7875",
+          "checked_at": "2026-10-27T09:22:19Z",
+          "location": "PR template / Why; Bug fix verification",
+          "excerpt": "For non-trivial features, please open an issue/discussion first to align on scope before writing code. Bugs should be encoded as a failing test that goes red before the fix."
+        }
+      ],
+      "rules": {
+        "bugfix": {
+          "issue_required": false,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": false
+        },
+        "feature": {
+          "issue_required": true,
+          "ready_label_required": false,
+          "ready_label": null,
+          "assignment_required": false,
+          "linked_pr_before_assignment_allowed": false,
+          "design_approval_required": true
+        },
+        "assignment_exempt_labels": [],
+        "required_labels": [],
+        "claim_comment_required": false,
+        "cla_required": false,
+        "ai_disclosure_required": true,
+        "paused": false,
+        "pause_reason": null,
+        "resume_conditions": [],
+        "issue_only": false,
+        "closed": false,
+        "issue_reporting_allowed": true,
+        "max_open_prs_per_contributor": null,
+        "required_any_labels": []
+      }
+    }
+  },
+  "samples": [
+    {
+      "name": "livekit_bugfix_direct_pr",
+      "repo": "livekit/agents",
+      "expected_route": "direct_pr",
+      "candidate": {
+        "candidate_id": "sample-livekit-bugfix",
+        "repo": "livekit/agents",
+        "base_sha": "3a6248cb79fd04863ec8a1f86b2260535d0876eb",
+        "defect_proven": true,
+        "fix_verified": true,
+        "design_uncertainties": [],
+        "contribution_type": "bugfix",
+        "report_only": false
+      },
+      "context": {
+        "claim": "FREE",
+        "issue_number": null,
+        "labels": [],
+        "assignees": [],
+        "actor": "sample-contributor",
+        "open_pr_count": 0,
+        "checked_at": "2026-10-27T09:27:19Z",
+        "own_open_pr_count": 0
+      }
+    },
+    {
+      "name": "fastmcp_bugfix_linked_pr_waiting",
+      "repo": "PrefectHQ/fastmcp",
+      "expected_route": "issue_first",
+      "candidate": {
+        "candidate_id": "sample-fastmcp-bugfix",
+        "repo": "PrefectHQ/fastmcp",
+        "base_sha": "d95ad1da977458549658e09aa6516c639ebc8ef5",
+        "defect_proven": true,
+        "fix_verified": true,
+        "design_uncertainties": [],
+        "contribution_type": "bugfix",
+        "report_only": false
+      },
+      "context": {
+        "claim": "FREE",
+        "issue_number": 5842,
+        "labels": [
+          "bug"
+        ],
+        "assignees": [],
+        "actor": "sample-contributor",
+        "open_pr_count": 0,
+        "checked_at": "2026-10-27T09:27:19Z",
+        "own_open_pr_count": 0
+      }
+    },
+    {
+      "name": "agno_bugfix_wait_for_ready",
+      "repo": "agno-agi/agno",
+      "expected_route": "issue_then_wait",
+      "candidate": {
+        "candidate_id": "sample-agno-bugfix",
+        "repo": "agno-agi/agno",
+        "base_sha": "c15c55ea7d405ac8bc3414536b6aab7dfc845bd1",
+        "defect_proven": true,
+        "fix_verified": true,
+        "design_uncertainties": [],
+        "contribution_type": "bugfix",
+        "report_only": false
+      },
+      "context": {
+        "claim": "FREE",
+        "issue_number": 11137,
+        "labels": [
+          "bug"
+        ],
+        "assignees": [],
+        "actor": "sample-contributor",
+        "open_pr_count": 0,
+        "checked_at": "2026-10-27T09:27:19Z",
+        "own_open_pr_count": 0
+      }
+    },
+    {
+      "name": "haystack_report_only_issue",
+      "repo": "deepset-ai/haystack",
+      "expected_route": "issue_only",
+      "candidate": {
+        "candidate_id": "sample-haystack-report",
+        "repo": "deepset-ai/haystack",
+        "base_sha": "9f3981682c94b7660ecdb8c001ac61e7c779137c",
+        "defect_proven": true,
+        "fix_verified": false,
+        "design_uncertainties": [],
+        "contribution_type": "bugfix",
+        "report_only": true
+      },
+      "context": {
+        "claim": "FREE",
+        "issue_number": null,
+        "labels": [],
+        "assignees": [],
+        "actor": "sample-contributor",
+        "open_pr_count": 0,
+        "checked_at": "2026-10-27T09:27:19Z",
+        "own_open_pr_count": 0
+      }
+    },
+    {
+      "name": "haystack_capacity_hold",
+      "repo": "deepset-ai/haystack",
+      "expected_route": "hold",
+      "candidate": {
+        "candidate_id": "sample-haystack-capacity",
+        "repo": "deepset-ai/haystack",
+        "base_sha": "9f3981682c94b7660ecdb8c001ac61e7c779137c",
+        "defect_proven": true,
+        "fix_verified": true,
+        "design_uncertainties": [],
+        "contribution_type": "bugfix",
+        "report_only": false
+      },
+      "context": {
+        "claim": "FREE",
+        "issue_number": 9002,
+        "labels": [
+          "good first issue"
+        ],
+        "assignees": [],
+        "actor": "sample-contributor",
+        "open_pr_count": 0,
+        "own_open_pr_count": 1,
+        "checked_at": "2026-10-27T09:27:19Z"
+      }
+    },
+    {
+      "name": "unknown_repo_hold",
+      "repo": "example/unknown",
+      "expected_route": "hold",
+      "candidate": {
+        "candidate_id": "sample-unknown",
+        "repo": "example/unknown",
+        "base_sha": "0000000000000000000000000000000000000000",
+        "defect_proven": true,
+        "fix_verified": true,
+        "design_uncertainties": [],
+        "contribution_type": "bugfix",
+        "report_only": false
+      },
+      "context": {
+        "claim": "UNKNOWN",
+        "issue_number": null,
+        "labels": [],
+        "assignees": [],
+        "actor": "sample-contributor",
+        "open_pr_count": 0,
+        "checked_at": "2026-10-27T09:27:19Z",
+        "own_open_pr_count": 0
+      }
+    },
+    {
+      "name": "deerflow_feature_wait_for_design",
+      "repo": "bytedance/deer-flow",
+      "expected_route": "issue_then_wait",
+      "candidate": {
+        "candidate_id": "sample-deerflow-feature",
+        "repo": "bytedance/deer-flow",
+        "base_sha": "9b89c7569d053ec1fbd25580361faf6e4e8bc997",
+        "defect_proven": true,
+        "fix_verified": true,
+        "design_uncertainties": [],
+        "contribution_type": "feature",
+        "report_only": false
+      },
+      "context": {
+        "claim": "FREE",
+        "issue_number": 9001,
+        "labels": [
+          "enhancement"
+        ],
+        "assignees": [],
+        "actor": "sample-contributor",
+        "open_pr_count": 0,
+        "checked_at": "2026-10-27T09:27:19Z",
+        "own_open_pr_count": 0
+      }
+    },
+    {
+      "name": "agentscope_bugfix_claim_required",
+      "repo": "modelscope/agentscope",
+      "expected_route": "issue_first",
+      "candidate": {
+        "candidate_id": "sample-agentscope-bugfix",
+        "repo": "modelscope/agentscope",
+        "base_sha": "d6e02f27b9c272b8f9d50dc7b9e8f546edf5af19",
+        "defect_proven": true,
+        "fix_verified": true,
+        "design_uncertainties": [],
+        "contribution_type": "bugfix",
+        "report_only": false
+      },
+      "context": {
+        "claim": "FREE",
+        "issue_number": 7000,
+        "labels": [
+          "Help Wanted"
+        ],
+        "assignees": [],
+        "actor": "sample-contributor",
+        "open_pr_count": 0,
+        "checked_at": "2026-10-27T09:27:19Z",
+        "own_open_pr_count": 0
+      }
+    }
+  ]
+}

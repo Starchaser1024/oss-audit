@@ -1,0 +1,32 @@
+{
+  "read_workers": 4,
+  "heavy_workers": 2,
+  "review_workers": 1,
+  "repos": 2,
+  "max_active": 40,
+  "daily_research": 8,
+  "resources": {
+    "min_available_disk_gib": 5,
+    "min_available_memory_gib": 2
+  },
+  "publication_quota": {
+    "daily_new_contributions": 2,
+    "note": "Separate from research capacity; publication still needs explicit user authorization."
+  },
+  "max_task_minutes": 25,
+  "cooldown_no_finding_hours": 72,
+  "lease": {
+    "ttl_seconds": 120,
+    "heartbeat_seconds": 30,
+    "quarantine_seconds": 60
+  },
+  "audit": {
+    "max_groups": 40,
+    "timeout_seconds": 300
+  },
+  "pi": {
+    "provider": "magpie",
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "session_root": "state/agent-sessions"
+  }
+}

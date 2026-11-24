@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "errors": [],
+  "counts": {
+    "red": {
+      "passed": 1,
+      "failed": 2,
+      "skipped": 0,
+      "errors": 0,
+      "xfail": 0
+    }
+  }
+}
