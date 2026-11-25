@@ -9,7 +9,15 @@
 1. **Static AST & Contract Asymmetry Analysis** — Identifies multi-implementation `Protocol`/`ABC` divergences ("$N - 1$ paths guarded"), sync/async exception-handling asymmetries, and broken `from_dict(cls, ...)` subclass factories as bounded investigation leads.
 2. **Reproducible RED -> GREEN Execution Receipts** — Runs isolated subprocesses that bind Git commit SHAs, file and lockfile SHA-256 digests, runtime module `__file__` import provenance, JUnit XML assertion failures, and per-node `pytest` outcomes to an append-only journal. Zero-test runs, skips, collection errors, shadowed imports, and tampered counts fail closed.
 3. **Upstream Policy & Claim Collision Router** — Evaluates pinned `CONTRIBUTING.md` snapshots alongside complete-pagination GitHub read checks (`FREE` / `TAKEN` / `UNKNOWN`) and active-PR collision queries to route candidates to `direct_pr`, `issue_first`, `issue_then_wait`, `issue_only`, or `hold`.
-4. **Independent Cross-Model Verification Gate & Counterexample Replay** — Separates worker hypothesis generation from reviewer acceptance (`Codex` cryptographic bundle binding) and replays real historical regressions across multiple candidate patches to reject overfitted word-lists or determiner heuristics.
+4. **Independent Falsification Gate & Counterexample Replay** — Enforces explicit production contract provenance (*a failing test written by the investigator is never itself a product contract*), normal-behavior preservation on base and patched revisions, cryptographic reviewer bundle binding, and historical counterexample replay to reject overfitted word-lists or determiner heuristics (`confirmed` vs. `excluded`, `covered_upstream`, `design_tradeoff_issue_only`, and `insufficient_evidence`).
+
+---
+
+## Scope Boundaries & Non-Goals
+
+- **Falsification & Maintainer Signal Over Volume** — Blocking an overfitted heuristic patch (`excluded`), catching an upstream fix opened minutes earlier (`covered_upstream`), or routing an uncontracted trade-off to `issue_only` is treated with the same rigor as merging a fix. Post-review `maintainer_feedback` entries feed directly back into future triage and lint rules.
+- **Bounded Local Workspace Queue, Not Unattended Mass Scanning** — `oss_audit.discovery` and `oss_audit.scheduling` coordinate bounded local Git worktrees and single-host SQLite leases for human-reviewed engineering investigations. The package contains **zero GitHub write primitives** (`oss-audit submit` emits dry-run preflight plans only) and never operates as an automated PR-publishing bot.
+- **Source-Level Contract Proof vs. Live HTTP Runtime Verification** — `oss-audit` proves offline source-level contracts, AST/protocol invariants, isolated `pytest` `RED -> GREEN` receipts, and upstream `CONTRIBUTING.md` governance prior to proposing a patch, complementing dual-environment HTTP runtime regression verifiers (such as `change-verifier`) that compare live baseline vs. candidate service deployments over replayed API traffic.
 
 ---
 
@@ -41,7 +49,7 @@ oss-audit/
 │   ├── analyzers/       # Protocol/ABC contract auditor, sync/async guard asymmetry & from_dict AST scanners
 │   ├── policy/          # Pinned CONTRIBUTING router, FREE/TAKEN/UNKNOWN claimcheck, collision & submit gates
 │   ├── evidence/        # Isolated pytest harness, runtime __file__ provenance, SHA-256 receipt validator
-│   ├── verification/    # Bundle verifier, historical counterexample replay, SQLite/cohort metrics, renderer
+│   ├── verification/    # Bundle & dossier falsification verifier, counterexample replay, metrics, renderer
 │   ├── scheduling/      # SQLite WAL queue, PID+creation-time lease fencing, bounded tick coordinator
 │   └── cli.py           # Unified `oss-audit` / `python -m oss_audit` command-line interface
 ├── policies/
@@ -50,7 +58,7 @@ oss-audit/
 │   └── pipeline.json    # Worker concurrency, lease TTLs, resource watermarks, and quota configuration
 ├── examples/            # Verified upstream issue reports, PR writeups, and issue-only routing artifacts
 ├── docs/                # Architecture, evidence schema, policy routing, and scheduler specifications
-└── tests/               # 129 unit and subprocess integration tests + pinned historical selector fixtures
+└── tests/               # 157 unit and subprocess integration tests + pinned counterexample & dossier fixtures
 ```
 
 ---
@@ -84,6 +92,10 @@ python -m oss_audit policy --check-samples
 
 # Replay 13 counterexamples across 4 real historical selector revisions (3 naive versions rejected, 1 accepted)
 python -m oss_audit verify --suite historical-counterexamples
+
+# Audit candidate investigation dossiers (confirmed fixes + excluded/prevented leads & feedback rules)
+python -m oss_audit verify --suite candidate-falsification
+python -m oss_audit dossier summary
 
 # Run static AST analyzers on a local repository checkout
 python -m oss_audit scan ./path/to/repo --mode contracts
@@ -130,11 +142,12 @@ Curated issue reports, PR writeups, and `issue_only` contract artifacts (such as
 ## Running Tests & Verification
 
 ```bash
-# Run full unit and subprocess receipt integration suite (129 tests)
+# Run full unit and subprocess receipt integration suite (157 tests)
 python -m pytest -q
 
-# Replay historical counterexamples and policy routing checks
+# Replay historical counterexamples, candidate falsification suite, and policy routing checks
 python -m oss_audit verify --suite historical-counterexamples
+python -m oss_audit verify --suite candidate-falsification
 python -m oss_audit policy --check-samples
 
 # Lint codebase

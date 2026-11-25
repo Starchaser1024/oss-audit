@@ -42,5 +42,8 @@ jobs:
       - name: Replay historical counterexample verification suite
         run: python -m oss_audit verify --suite historical-counterexamples
 
+      - name: Verify candidate falsification and lifecycle fixture suite
+        run: python -m oss_audit verify --suite candidate-falsification
+
       - name: Verify pinned contribution policy routing samples
         run: python -m oss_audit policy --check-samples

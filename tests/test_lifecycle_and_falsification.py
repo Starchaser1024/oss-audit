@@ -412,5 +412,50 @@ class CandidateFalsificationGateTests(unittest.TestCase):
             self.assertEqual(summary["by_terminal_verdict"]["confirmed"], 1)
 
 
+class CheckedInDossierFixtureTests(unittest.TestCase):
+    def test_checked_in_seven_candidate_fixture_passes_falsification_audit(self):
+        report = verify_candidate_falsification_suite()
+        self.assertTrue(report["ok"], report)
+        summary = report["summary"]
+        self.assertEqual(summary["total_candidates"], 7)
+        self.assertEqual(
+            summary["by_terminal_verdict"],
+            {
+                "confirmed": 3,
+                "excluded": 1,
+                "insufficient_evidence": 0,
+                "covered_upstream": 2,
+                "design_tradeoff_issue_only": 1,
+            },
+        )
+        self.assertEqual(summary["by_maintainer_feedback"]["merged"], 3)
+        self.assertEqual(summary["by_maintainer_feedback"]["published_issue"], 1)
+        self.assertEqual(summary["prevented_unhelpful_prs"], 3)
+        self.assertEqual(summary["derived_rule_updates_count"], 7)
+
+    def test_cli_candidate_falsification_suite_and_summary_exit_cleanly(self):
+        verify_proc = subprocess.run(
+            [sys.executable, "-m", "oss_audit", "verify", "--suite", "candidate-falsification"],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(verify_proc.returncode, 0, verify_proc.stderr)
+        self.assertTrue(json.loads(verify_proc.stdout)["ok"])
+
+        summary_proc = subprocess.run(
+            [sys.executable, "-m", "oss_audit", "dossier", "summary"],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(summary_proc.returncode, 0, summary_proc.stderr)
+        summary_payload = json.loads(summary_proc.stdout)
+        self.assertTrue(summary_payload["ok"])
+        self.assertEqual(summary_payload["total_candidates"], 7)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,451 @@
+{
+  "schema_version": 1,
+  "dossiers": [
+    {
+      "candidate_id": "bytedance--deer-flow--7462",
+      "upstream_repo": "bytedance/deer-flow",
+      "pinned_commit": "f41670016",
+      "contract_provenance": [
+        {
+          "source_type": "sibling_implementation_symmetry",
+          "path": "backend/packages/harness/deerflow/skills/package_files.py",
+          "line_anchor": "L54-L72",
+          "claim": "Shared is_code_file classifier separates executable scripts from static markdown, CSV, and config deliverables."
+        },
+        {
+          "source_type": "docstring",
+          "path": "backend/packages/harness/deerflow/sandbox/local/local_sandbox.py",
+          "line_anchor": "L1218-L1230",
+          "claim": "Container-to-host path translation exists so host interpreters can execute written scripts while preserving static output artifacts."
+        }
+      ],
+      "production_entrypoint": {
+        "kind": "public_api",
+        "symbol": "LocalSandbox.write_file",
+        "call_chain": [
+          "LocalSandbox.write_file",
+          "_content_path_translation_applies",
+          "_resolve_paths_in_content"
+        ],
+        "reachability": "proven"
+      },
+      "minimal_reproduction": {
+        "test_nodeid": "backend/tests/test_local_sandbox_content_path_translation.py::test_write_file_preserves_virtual_paths_in_markdown",
+        "input_summary": "Write dictated README.md and CSV deliverables containing /mnt/user-data/outputs/results.csv via LocalSandbox.write_file.",
+        "expected_on_contract": "Non-executable deliverables preserve virtual /mnt/... paths byte-for-byte on disk.",
+        "observed_on_base": "Stored bytes are rewritten to host mount paths while read_file masks the mutation (7 failed on f41670016).",
+        "base_outcome": "failed",
+        "patched_outcome": "passed"
+      },
+      "normal_behavior_counterexample": {
+        "test_nodeid": "backend/tests/test_local_sandbox_content_path_translation.py::test_executable_scripts_translate_virtual_paths",
+        "normal_input_summary": "Write .py, .sh, .awk, and shebang-only executable scripts referencing /mnt/user-data/outputs/out.txt.",
+        "base_outcome": "passed",
+        "patched_outcome": "passed",
+        "rationale": "Disabling path translation globally would break #1935 host script execution and .awk interpreter invocations."
+      },
+      "falsification_log": {
+        "reviewer": "Codex",
+        "shadowed_import_checked": true,
+        "overfitted_patch_checked": true,
+        "faulty_test_assertion_checked": true,
+        "stale_evidence_checked": true,
+        "upstream_collision_checked": true,
+        "overfitting_signals": [],
+        "upstream_collision": null,
+        "disproved_reason": null
+      },
+      "terminal_verdict": "confirmed",
+      "maintainer_feedback": {
+        "status": "merged",
+        "maintainer_notes": "Review rounds caught .awk exclusion in is_code_file and blocking FIFO open during append classification; fixed with O_NONBLOCK and suffixless FIFO test, merged as 228913b6b.",
+        "requested_evidence": [
+          "Preserve container-path translation for .awk scripts",
+          "Guard destination sniffing with O_NONBLOCK and S_ISREG on POSIX FIFOs",
+          "Add suffixless FIFO append regression so O_NONBLOCK mutation turns red"
+        ],
+        "rule_update_derived": "Require non-blocking O_NONBLOCK/S_ISREG checks and interpreter-extension counterexamples whenever a patch inspects destination files before writing."
+      }
+    },
+    {
+      "candidate_id": "agentscope-ai--agentscope--3401",
+      "upstream_repo": "agentscope-ai/agentscope",
+      "pinned_commit": "d6e02f27b9c272b8f9d50dc7b9e8f546edf5af19",
+      "contract_provenance": [
+        {
+          "source_type": "sibling_implementation_symmetry",
+          "path": "src/agentscope/rag/_parser/_word.py",
+          "line_anchor": "L92-L138",
+          "claim": "_is_blank_paragraph already preserves zero-run <w:p> blank lines to retain paragraph separation while excluding media-bearing paragraphs."
+        },
+        {
+          "source_type": "rfc_or_spec",
+          "path": "src/agentscope/rag/_parser/_word.py",
+          "line_anchor": "L105-L132",
+          "claim": "OOXML WordprocessingML <w:p> paragraphs carrying only whitespace <w:t> or <w:br/> runs represent blank lines, whereas <w:instrText> represents active field codes."
+        }
+      ],
+      "production_entrypoint": {
+        "kind": "public_api",
+        "symbol": "WordParser.__call__",
+        "call_chain": [
+          "WordParser.__call__",
+          "WordParser._extract_text_blocks",
+          "WordParser._is_blank_paragraph"
+        ],
+        "reachability": "proven"
+      },
+      "minimal_reproduction": {
+        "test_nodeid": "tests/rag_parser_test.py::WordParserTest::test_blank_paragraph_with_a_run_is_preserved",
+        "input_summary": "Parse a DOCX containing two text paragraphs separated by a blank paragraph carrying a space or <w:br/> run.",
+        "expected_on_contract": "Blank paragraph separator is preserved ('Paragraph one.\\n\\n\\nParagraph two.').",
+        "observed_on_base": "Blank paragraph with any <w:r> child is dropped, collapsing chunks into 'Paragraph one.\\nParagraph two.'.",
+        "base_outcome": "failed",
+        "patched_outcome": "passed"
+      },
+      "normal_behavior_counterexample": {
+        "test_nodeid": "tests/rag_parser_test.py::WordParserTest::test_paragraph_with_a_field_code_is_not_a_blank_line",
+        "normal_input_summary": "Parse a DOCX paragraph containing an OOXML <w:instrText> field instruction without visible <w:t> text.",
+        "base_outcome": "passed",
+        "patched_outcome": "passed",
+        "rationale": "Checking only empty paragraph.text would misclassify active field-code paragraphs as blank lines."
+      },
+      "falsification_log": {
+        "reviewer": "Codex",
+        "shadowed_import_checked": true,
+        "overfitted_patch_checked": true,
+        "faulty_test_assertion_checked": true,
+        "stale_evidence_checked": true,
+        "upstream_collision_checked": true,
+        "overfitting_signals": [],
+        "upstream_collision": null,
+        "disproved_reason": null
+      },
+      "terminal_verdict": "confirmed",
+      "maintainer_feedback": {
+        "status": "merged",
+        "maintainer_notes": "Submitted via issue_first (#3400 -> #3401); approved and merged as ce04210e2 with follow-up pylint protected-access directive in 744be954.",
+        "requested_evidence": [
+          "Ensure pylint protected-access compliance on direct helper tests"
+        ],
+        "rule_update_derived": "Include full upstream pylint test-suite checks alongside flake8 and black in receipt lint specs for agentscope."
+      }
+    },
+    {
+      "candidate_id": "deepset-ai--haystack--13381",
+      "upstream_repo": "deepset-ai/haystack",
+      "pinned_commit": "34a1a09",
+      "contract_provenance": [
+        {
+          "source_type": "typing_protocol",
+          "path": "haystack/document_stores/types/protocol.py",
+          "line_anchor": "L28-L78",
+          "claim": "DocumentStore Protocol mandates synchronous filter_documents; filter_documents_async is an optional async extension."
+        },
+        {
+          "source_type": "sibling_implementation_symmetry",
+          "path": "haystack/components/writers/document_writer.py",
+          "line_anchor": "L142-L165",
+          "claim": "Sibling async components explicitly check async method availability on custom sync-only DocumentStore implementations."
+        }
+      ],
+      "production_entrypoint": {
+        "kind": "public_api",
+        "symbol": "FilterRetriever.run_async",
+        "call_chain": [
+          "AsyncPipeline.run_async",
+          "FilterRetriever.run_async",
+          "_call_with_async_fallback"
+        ],
+        "reachability": "proven"
+      },
+      "minimal_reproduction": {
+        "test_nodeid": "test/components/retrievers/test_filter_retriever_async.py::TestFilterRetrieverAsync::test_run_async_sync_only_store",
+        "input_summary": "Run FilterRetriever.run_async, AutoMergingRetriever.run_async, and SentenceWindowRetriever.run_async with a sync-only DocumentStore.",
+        "expected_on_contract": "Retrievers fall back cleanly to worker-thread execution of synchronous filter_documents.",
+        "observed_on_base": "Unconditional filter_documents_async lookup raises AttributeError on sync-only stores.",
+        "base_outcome": "failed",
+        "patched_outcome": "passed"
+      },
+      "normal_behavior_counterexample": {
+        "test_nodeid": "test/components/retrievers/test_filter_retriever_async.py::TestFilterRetrieverAsync::test_run_async_native_async_store",
+        "normal_input_summary": "Run async retrievers against InMemoryDocumentStore implementing native filter_documents_async.",
+        "base_outcome": "passed",
+        "patched_outcome": "passed",
+        "rationale": "Async-capable stores must continue executing native filter_documents_async without unnecessary thread-pool hops."
+      },
+      "falsification_log": {
+        "reviewer": "Codex",
+        "shadowed_import_checked": true,
+        "overfitted_patch_checked": true,
+        "faulty_test_assertion_checked": true,
+        "stale_evidence_checked": true,
+        "upstream_collision_checked": true,
+        "overfitting_signals": [],
+        "upstream_collision": null,
+        "disproved_reason": null
+      },
+      "terminal_verdict": "confirmed",
+      "maintainer_feedback": {
+        "status": "merged",
+        "maintainer_notes": "Maintainer requested shared worker-thread fallback helper (_call_with_async_fallback) across retrievers, CacheChecker, and DocumentWriter plus Reno note polish; merged as 76fc2d3d7.",
+        "requested_evidence": [
+          "Unify fallback in haystack/utils/async_utils.py across all 5 components",
+          "Add Reno release note and debug log coverage"
+        ],
+        "rule_update_derived": "When sibling components guard an optional async protocol method, check whether upstream prefers thread-pool fallback over fail-fast TypeError and validate Reno notes."
+      }
+    },
+    {
+      "candidate_id": "bytedance--deer-flow--7491",
+      "upstream_repo": "bytedance/deer-flow",
+      "pinned_commit": "a1b89d043",
+      "contract_provenance": [
+        {
+          "source_type": "docstring",
+          "path": "backend/packages/harness/deerflow/projects/documents.py",
+          "line_anchor": "L45-L96",
+          "claim": "Async project document reads must release underlying file handles deterministically across task cancellation boundaries."
+        }
+      ],
+      "production_entrypoint": {
+        "kind": "public_api",
+        "symbol": "read_project_document",
+        "call_chain": [
+          "read_project_document",
+          "_read_document_bytes"
+        ],
+        "reachability": "proven"
+      },
+      "minimal_reproduction": {
+        "test_nodeid": "backend/tests/blocking_io/test_project_documents_read_cancellation.py::test_cancel_after_open_closes_file_handle",
+        "input_summary": "Cancel async project document read immediately after open, during in-flight read, and during in-flight close.",
+        "expected_on_contract": "File handle closes cleanly and close settles before cancellation propagates.",
+        "observed_on_base": "All 3 cancellation windows leaked open handles or raced close against active reads on a1b89d043.",
+        "base_outcome": "failed",
+        "patched_outcome": "passed"
+      },
+      "normal_behavior_counterexample": {
+        "test_nodeid": "backend/tests/blocking_io/test_project_documents_read_cancellation.py::test_uncancelled_document_read_returns_payload",
+        "normal_input_summary": "Uncancelled sequential and concurrent project document reads return full bytes and close handles.",
+        "base_outcome": "passed",
+        "patched_outcome": "passed",
+        "rationale": "Shielding close cleanup must not alter normal return payloads or swallow non-cancellation I/O errors."
+      },
+      "falsification_log": {
+        "reviewer": "Codex",
+        "shadowed_import_checked": true,
+        "overfitted_patch_checked": true,
+        "faulty_test_assertion_checked": true,
+        "stale_evidence_checked": true,
+        "upstream_collision_checked": true,
+        "overfitting_signals": [],
+        "upstream_collision": "bytedance/deer-flow#7493 opened 27 minutes prior (2026-10-25T09:28:15Z)",
+        "disproved_reason": null
+      },
+      "terminal_verdict": "covered_upstream",
+      "maintainer_feedback": {
+        "status": "not_submitted_prevented",
+        "maintainer_notes": "Pre-submit collision check at 2026-10-25T09:55:00Z detected issue author's PR #7493 opened at 09:28:15Z; local patch held with zero duplicate PR noise.",
+        "requested_evidence": [],
+        "rule_update_derived": "Mandate a fresh GET-only claim and cross-reference PR check immediately before generating any publication plan."
+      }
+    },
+    {
+      "candidate_id": "agno-agi--agno--11144",
+      "upstream_repo": "agno-agi/agno",
+      "pinned_commit": "c15c55ea7d405ac8bc3414536b6aab7dfc845bd1",
+      "contract_provenance": [
+        {
+          "source_type": "public_docs",
+          "path": "CONTRIBUTING.md",
+          "line_anchor": "L21-L30",
+          "claim": "External pull requests require a linked issue carrying the maintainer-assigned ready label; unlabeled PRs are auto-closed."
+        },
+        {
+          "source_type": "typing_protocol",
+          "path": "libs/agno/agno/tools/function.py",
+          "line_anchor": "L210-L265",
+          "claim": "UserInputField schema serialization supports typed tool parameter annotations including union types."
+        }
+      ],
+      "production_entrypoint": {
+        "kind": "public_api",
+        "symbol": "Function.from_callable",
+        "call_chain": [
+          "Function.from_callable",
+          "UserInputField.to_dict"
+        ],
+        "reachability": "proven"
+      },
+      "minimal_reproduction": {
+        "test_nodeid": "libs/agno/tests/unit/run/test_requirement.py::test_user_input_field_union_serialization",
+        "input_summary": "Serialize a tool requirement containing a Union-typed UserInputField.",
+        "expected_on_contract": "Union field serializes cleanly to JSON-compatible schema metadata.",
+        "observed_on_base": "Serialization fails on Union annotations on base commit c15c55ea7d.",
+        "base_outcome": "failed",
+        "patched_outcome": "passed"
+      },
+      "normal_behavior_counterexample": {
+        "test_nodeid": "libs/agno/tests/unit/run/test_requirement.py::test_user_input_field_scalar_serialization",
+        "normal_input_summary": "Serialize scalar str, int, and bool UserInputField annotations.",
+        "base_outcome": "passed",
+        "patched_outcome": "passed",
+        "rationale": "Union unwrapping must leave scalar JSON schema type mappings unchanged."
+      },
+      "falsification_log": {
+        "reviewer": "Codex",
+        "shadowed_import_checked": true,
+        "overfitted_patch_checked": true,
+        "faulty_test_assertion_checked": true,
+        "stale_evidence_checked": true,
+        "upstream_collision_checked": true,
+        "overfitting_signals": [],
+        "upstream_collision": "Issue #11144 lacked maintainer ready label and was closed upstream on 2026-10-22",
+        "disproved_reason": null
+      },
+      "terminal_verdict": "covered_upstream",
+      "maintainer_feedback": {
+        "status": "not_submitted_prevented",
+        "maintainer_notes": "Policy router returned issue_then_wait due to missing ready label on #11144; prevented policy-violating drive-by PR before upstream closed the issue directly.",
+        "requested_evidence": [],
+        "rule_update_derived": "Enforce ready_label_required in pinned repository policy snapshots as a fail-closed hold prior to branch push."
+      }
+    },
+    {
+      "candidate_id": "skyvern-ai--skyvern--9098",
+      "upstream_repo": "Skyvern-AI/skyvern",
+      "pinned_commit": "b04c3f7fb4b2f60ab49c4de05e5324ef97bdda2d",
+      "contract_provenance": [
+        {
+          "source_type": "docstring",
+          "path": "skyvern/constants.py",
+          "line_anchor": "L162-L166",
+          "claim": "MAX_FILE_PARSE_INPUT_TOKENS = 256000 documents the aggregate token ceiling for parsed file prompts."
+        },
+        {
+          "source_type": "docstring",
+          "path": "skyvern/forge/sdk/workflow/models/split_pdf_block.py",
+          "line_anchor": "L178-L190",
+          "claim": "_build_page_texts enforces MIN_PER_PAGE_TOKENS = 256 per page without bounding total token count across many pages."
+        }
+      ],
+      "production_entrypoint": {
+        "kind": "runtime_pipeline",
+        "symbol": "SplitPdfBlock.execute",
+        "call_chain": [
+          "SplitPdfBlock.execute",
+          "SplitPdfBlock._build_page_texts",
+          "SplitPdfBlock._request_split_plan"
+        ],
+        "reachability": "proven"
+      },
+      "minimal_reproduction": {
+        "test_nodeid": "tests/unit/workflow/test_split_pdf_budget.py::test_dense_and_high_page_count_pdfs_exceed_token_cap",
+        "input_summary": "Pass 300 dense identifier pages or 1100 short pages into SplitPdfBlock._build_page_texts.",
+        "expected_on_contract": "Aggregate prompt payload stays within MAX_FILE_PARSE_INPUT_TOKENS (256000) or rejects oversized PDFs explicitly.",
+        "observed_on_base": "Produces 693300 tokens for 300 dense pages and 275000 tokens for 1100 short pages (2 failed on b04c3f7fb4).",
+        "base_outcome": "failed",
+        "patched_outcome": "not_applicable"
+      },
+      "normal_behavior_counterexample": {
+        "test_nodeid": "tests/unit/workflow/test_split_pdf_budget.py::test_two_page_pdf_preserves_excerpts_and_numbering",
+        "normal_input_summary": "Pass a standard 2-page PDF within token budget into _build_page_texts.",
+        "base_outcome": "passed",
+        "patched_outcome": "not_applicable",
+        "rationale": "Baseline 2-page PDFs preserve full text and page markers at 16 tokens; choosing rejection vs smaller excerpts is a product decision."
+      },
+      "falsification_log": {
+        "reviewer": "Codex",
+        "shadowed_import_checked": true,
+        "overfitted_patch_checked": false,
+        "faulty_test_assertion_checked": true,
+        "stale_evidence_checked": true,
+        "upstream_collision_checked": true,
+        "overfitting_signals": [],
+        "upstream_collision": null,
+        "disproved_reason": null
+      },
+      "terminal_verdict": "design_tradeoff_issue_only",
+      "maintainer_feedback": {
+        "status": "published_issue",
+        "maintainer_notes": "Resolving MIN_PER_PAGE_TOKENS legibility vs MAX_FILE_PARSE_INPUT_TOKENS billing cap requires maintainer product direction; routed to issue_only (#9098) with zero unapproved code patch.",
+        "requested_evidence": [],
+        "rule_update_derived": "Route candidates with non-empty design_uncertainties strictly to issue_only or hold with implementation_allowed=False."
+      }
+    },
+    {
+      "candidate_id": "bytedance--deer-flow--7598-naive-selector-heuristics",
+      "upstream_repo": "bytedance/deer-flow",
+      "pinned_commit": "68c9fce5c424b0e96986a0ca365db73a1eef8196",
+      "contract_provenance": [
+        {
+          "source_type": "public_docs",
+          "path": "backend/packages/harness/deerflow/models/AGENTS.md",
+          "line_anchor": "L1-L45",
+          "claim": "Model selection directives must distinguish explicit configured model switches from ordinary task prose containing the word 'model'."
+        },
+        {
+          "source_type": "sibling_implementation_symmetry",
+          "path": "backend/packages/harness/deerflow/models/selection.py",
+          "line_anchor": "L1-L95",
+          "claim": "Configured model catalog names and aliases define valid model targets at runtime."
+        }
+      ],
+      "production_entrypoint": {
+        "kind": "public_api",
+        "symbol": "resolve_model_control",
+        "call_chain": [
+          "resolve_model_control"
+        ],
+        "reachability": "proven"
+      },
+      "minimal_reproduction": {
+        "test_nodeid": "backend/tests/test_model_selection.py::test_ordinary_regression_model_prompt_not_captured",
+        "input_summary": "Prompt 'Use a regression model to analyze the report' against a standard GPT/Claude model catalog.",
+        "expected_on_contract": "Treated as normal task text (status='none', scope=None).",
+        "observed_on_base": "Broad use..to regex captures 'a regression model' as an unavailable LLM on 68c9fce5c4.",
+        "base_outcome": "failed",
+        "patched_outcome": "passed"
+      },
+      "normal_behavior_counterexample": {
+        "test_nodeid": "backend/tests/test_model_selection.py::test_explicit_the_claude_model_and_unseen_causal_prompts",
+        "normal_input_summary": "Prompts 'Use the Claude model for this turn: summarize', 'Use a causal model to analyze the report', and 'Use a data model to design a database' (with data-chat configured).",
+        "base_outcome": "passed",
+        "patched_outcome": "failed",
+        "rationale": "Determiner filters (d67512b050) break explicit 'the/my Claude model' controls, while static noun word-lists (2bc504b9ba) fail on unseen adjectives and catalog token overlap."
+      },
+      "falsification_log": {
+        "reviewer": "Codex",
+        "shadowed_import_checked": true,
+        "overfitted_patch_checked": true,
+        "faulty_test_assertion_checked": true,
+        "stale_evidence_checked": true,
+        "upstream_collision_checked": true,
+        "overfitting_signals": [
+          "determiner_filter_breaks_explicit_scoped_model_selection",
+          "static_noun_denylist_misses_unseen_adjectives_and_catalog_token_overlap"
+        ],
+        "upstream_collision": null,
+        "disproved_reason": "Independent 13-case historical-counterexamples replay rejected both article_patch (d67512b050, 3 failed) and wordlist_patch (2bc504b9ba, 4 failed) before accepting catalog-exact boundary matching (3c510c8552)."
+      },
+      "patch_strategy": {
+        "kind": "static_denylist"
+      },
+      "counterexample_replay": {
+        "suite": "historical-counterexamples",
+        "evaluated_revision": "wordlist_patch"
+      },
+      "terminal_verdict": "excluded",
+      "maintainer_feedback": {
+        "status": "not_submitted_prevented",
+        "maintainer_notes": "Review feedback on determiner edge cases prompted codifying the 4-revision 13-case historical-counterexamples replay suite to block heuristic selector patches automatically.",
+        "requested_evidence": [
+          "Preserve explicit 'Use the/my <Model> model' turn and conversation controls",
+          "Handle unseen domain adjectives without a static English noun list"
+        ],
+        "rule_update_derived": "Require all 7 PARSER_CASES counterexample categories and forbid static word-list heuristics when a runtime identifier catalog exists."
+      }
+    }
+  ]
+}
