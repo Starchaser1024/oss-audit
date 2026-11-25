@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
+import shutil
 import subprocess
+import sys
 import uuid
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -26,6 +29,71 @@ PARSER_CASES = {
     "metamorphic",
     "preservation",
 }
+
+
+def _preserve_executable_path(raw: str | Path) -> str:
+    """Canonicalize parent directories while preserving leaf virtualenv symlinks."""
+    expanded = Path(os.path.expanduser(str(raw)))
+    if not expanded.is_absolute():
+        expanded = Path.cwd() / expanded
+    return str(expanded.parent.resolve() / expanded.name)
+
+
+def resolve_python_executable(raw: str | Path | None = None) -> str:
+    """Resolve an interpreter path without stripping its virtualenv leaf symlink."""
+    current_python = _preserve_executable_path(sys.executable)
+    if raw is None:
+        return current_python
+    text = str(raw).strip()
+    if not text or text.lower() in {"python", "python3", "python.exe", "python3.exe"}:
+        return current_python
+    has_sep = os.path.sep in text or (os.path.altsep is not None and os.path.altsep in text)
+    expanded = Path(os.path.expanduser(text))
+    if has_sep or expanded.exists():
+        return _preserve_executable_path(expanded)
+    sibling = shutil.which(text, path=str(Path(current_python).parent))
+    if sibling:
+        return _preserve_executable_path(sibling)
+    found = shutil.which(text)
+    if found:
+        return _preserve_executable_path(found)
+    return _preserve_executable_path(expanded)
+
+
+def resolve_tool_argv(argv: list[str], python_executable: str | None = None) -> list[str]:
+    """Bind bare python/pytest/ruff commands to the target or active interpreter environment."""
+    bound_py = resolve_python_executable(python_executable)
+    host_py = _preserve_executable_path(sys.executable)
+    head = argv[0].strip()
+    lower_head = head.lower()
+    if lower_head in {"python", "python3", "python.exe", "python3.exe"}:
+        return [bound_py, *argv[1:]]
+    has_sep = os.path.sep in head or (os.path.altsep is not None and os.path.altsep in head)
+    if has_sep:
+        expanded = Path(os.path.expanduser(head))
+        if expanded.exists():
+            return [_preserve_executable_path(expanded), *argv[1:]]
+        return list(argv)
+    if lower_head in {"pytest", "py.test", "pytest.exe", "py.test.exe", "ruff", "ruff.exe"}:
+        module_name = "pytest" if ("pytest" in lower_head or "py.test" in lower_head) else "ruff"
+        if Path(bound_py) == Path(host_py) and importlib.util.find_spec(module_name) is not None:
+            return [host_py, "-m", module_name, *argv[1:]]
+        sibling_bound = shutil.which(head, path=str(Path(bound_py).parent))
+        if sibling_bound:
+            if module_name == "pytest":
+                return [bound_py, "-m", "pytest", *argv[1:]]
+            return [_preserve_executable_path(sibling_bound), *argv[1:]]
+        if importlib.util.find_spec(module_name) is not None:
+            return [host_py, "-m", module_name, *argv[1:]]
+        sibling_host = shutil.which(head, path=str(Path(host_py).parent))
+        if sibling_host:
+            return [_preserve_executable_path(sibling_host), *argv[1:]]
+    else:
+        for bin_dir in (Path(bound_py).parent, Path(host_py).parent):
+            sibling = shutil.which(head, path=str(bin_dir))
+            if sibling:
+                return [_preserve_executable_path(sibling), *argv[1:]]
+    return list(argv)
 
 
 def inside(checkout: str | Path, relative: str | Path) -> Path:
@@ -91,7 +159,7 @@ def normalize_spec(spec: dict[str, Any]) -> dict[str, Any]:
     normalized["pythonpath"] = [str(inside(checkout, p)) for p in normalized["pythonpath"]]
     normalized["cwd"] = str(inside(checkout, normalized.get("cwd", ".")))
     normalized["checkout"] = str(checkout)
-    normalized["python"] = str(Path(normalized["python"]).resolve())
+    normalized["python"] = resolve_python_executable(normalized["python"])
     if normalized["phase"] == "red":
         changed = set(filter(None, git(checkout, "diff", "--name-only", "HEAD").splitlines()))
         untracked = set(
@@ -144,17 +212,26 @@ def run(
         for key in ("sources", "tests", "locks")
     }
     is_check = spec["phase"] in {"lint", "format", "whitespace"}
-    cmd = (
+    raw_cmd = (
         spec["check_argv"]
         if is_check
         else [spec["python"], "-B", str(HARNESS_PATH), str(normalized), str(output_dir)]
     )
-    if not isinstance(cmd, list) or not cmd or not all(isinstance(s, str) for s in cmd):
+    if not isinstance(raw_cmd, list) or not raw_cmd or not all(isinstance(s, str) for s in raw_cmd):
         raise ValueError("Command must be a nonempty argv array")
+    cmd = resolve_tool_argv(raw_cmd, spec["python"]) if is_check else raw_cmd
     tmp_dir = paths.tmp_dir
     tmp_dir.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
+    path_entries: list[str] = []
+    for interp in (spec["python"], resolve_python_executable()):
+        bin_dir = str(Path(interp).parent)
+        if bin_dir and bin_dir not in path_entries:
+            path_entries.append(bin_dir)
+    if env.get("PATH"):
+        path_entries.append(env["PATH"])
     env.update(
+        PATH=os.pathsep.join(path_entries),
         PYTHONIOENCODING="utf-8",
         PYTHONUTF8="1",
         PYTHONDONTWRITEBYTECODE="1",

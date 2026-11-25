@@ -1,12 +1,14 @@
 """Exercise the subprocess evidence runner and its tamper/rejection boundaries."""
 
 import importlib.util
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from oss_audit.core.common import read_json, write_json
 from oss_audit.evidence import runner as evidence
@@ -287,6 +289,42 @@ class EvidenceIntegration(unittest.TestCase):
         card = read_json(self.card_path)
         card["defect_class"] = "parser"
         self.assertIn("counterexample_categories_missing", evidence.validate_contract(card))
+
+    def test_resolve_python_executable_preserves_venv_symlink(self):
+        expected = str(PYTHON.parent.resolve() / PYTHON.name)
+        self.assertEqual(evidence.resolve_python_executable(PYTHON), expected)
+        self.assertEqual(evidence.resolve_python_executable("python"), expected)
+        self.assertEqual(evidence.resolve_python_executable("python3"), expected)
+
+    def test_bare_python_and_ruff_work_without_venv_on_path(self):
+        git_bin = shutil.which("git")
+        self.assertIsNotNone(git_bin)
+        minimal_path = str(Path(git_bin).parent)
+        with patch.dict(os.environ, {"PATH": minimal_path}, clear=False):
+            green_spec = self.spec(self.repo, "green")
+            green_spec["python"] = "python"
+            green_spec_path = self.folder / "no-path-green.json"
+            write_json(green_spec_path, green_spec)
+            green_receipt = evidence.run(
+                green_spec_path, self.folder / "run-no-path-green", workspace=self.workspace
+            )
+            self.assertTrue(evidence.validate_receipt(green_receipt, workspace=self.workspace)["ok"])
+
+            if importlib.util.find_spec("ruff") is not None:
+                lint_spec = self.spec(self.repo, "lint")
+                lint_spec["python"] = "python"
+                lint_spec["check_argv"] = ["ruff", "check", "sample.py", "test_sample.py", "--no-cache"]
+                lint_spec_path = self.folder / "no-path-lint.json"
+                write_json(lint_spec_path, lint_spec)
+                lint_receipt = evidence.run(
+                    lint_spec_path, self.folder / "run-no-path-lint", workspace=self.workspace
+                )
+                validated = evidence.validate_receipt(lint_receipt, workspace=self.workspace)
+                self.assertTrue(validated["ok"], validated)
+                self.assertEqual(
+                    validated["receipt"]["argv"][:3],
+                    [evidence.resolve_python_executable(), "-m", "ruff"],
+                )
 
 
 if __name__ == "__main__":

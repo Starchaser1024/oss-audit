@@ -64,6 +64,13 @@ class WorkspacePaths:
         return REPO_ROOT / "ledger.json"
 
     @property
+    def dossiers_file(self) -> Path:
+        candidate = self.root / "tests" / "fixtures" / "candidate_dossiers" / "dossiers.json"
+        if candidate.is_file():
+            return candidate
+        return REPO_ROOT / "tests" / "fixtures" / "candidate_dossiers" / "dossiers.json"
+
+    @property
     def queue_db(self) -> Path:
         return self.root / "queue" / "pipeline.db"
 

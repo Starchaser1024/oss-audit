@@ -26,6 +26,7 @@ def _dispatch_map() -> dict[str, tuple[str, Callable[[list[str] | None], int]]]:
     from oss_audit.scheduling.queue import cli as queue_main
     from oss_audit.scheduling.tick import cli as tick_main
     from oss_audit.scheduling.watch import main as watch_main
+    from oss_audit.verification.lifecycle import main as dossier_main
     from oss_audit.verification.metrics import main as metrics_main
     from oss_audit.verification.render import main as render_main
     from oss_audit.verification.verify import main as verify_main
@@ -45,6 +46,8 @@ def _dispatch_map() -> dict[str, tuple[str, Callable[[list[str] | None], int]]]:
         "prep": ("Create an isolated Git worktree for a candidate branch", prep_main),
         "evidence": ("Execute isolated pytest receipts or validate SHA-256 bundles", evidence_main),
         "verify": ("Validate evidence bundles or replay historical counterexample suites", verify_main),
+        "dossier": ("Validate candidate investigation dossiers and maintainer feedback loops", dossier_main),
+        "candidates": ("Inspect and filter audited candidate dossiers by verdict", dossier_main),
         "render": ("Render issue or PR drafts strictly from verified execution receipts", render_main),
         "submit": ("Run fail-closed preflight gate and emit a dry-run publication plan", submit_main),
         "metrics": ("Compute read-only local SQLite funnel or remote cohort metrics", metrics_main),
