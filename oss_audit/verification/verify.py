@@ -13,6 +13,24 @@ from typing import Any
 from oss_audit.core.common import read_json, utcnow, write_json
 from oss_audit.core.paths import WorkspacePaths, fixtures_dir
 from oss_audit.evidence.runner import validate_bundle, validate_receipt
+from oss_audit.verification.lifecycle import (
+    CONTRACT_SOURCE_TYPES,
+    FALSIFICATION_BOOLEAN_CHECKS,
+    is_test_path,
+    is_valid_line_anchor,
+    load_dossiers,
+    summarize_dossiers,
+    validate_dossier_schema,
+)
+
+OVERFITTED_PATCH_KINDS: frozenset[str] = frozenset(
+    {
+        "literal_match",
+        "static_allowlist",
+        "static_denylist",
+        "determiner_heuristic",
+    }
+)
 
 
 def _load_selector_revisions(workspace: str | Path | None = None) -> list[tuple[str, str, bytes]]:
@@ -144,44 +162,226 @@ def historical(
     }
 
 
+def verify_candidate_dossier(
+    dossier: dict[str, Any],
+    workspace: str | Path | None = None,
+    _replay_cache: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Run the independent falsification audit against a candidate investigation dossier.
+
+    Blocks confirmation (fail-closed) whenever a candidate:
+    1. Cites only test files or lacks a valid production contract provenance anchor,
+    2. Lacks a passing normal-behavior counterexample on both base and patched revisions,
+    3. Leaves any required independent falsification or collision check incomplete, or
+    4. Uses an overfitted heuristic patch flagged by signals or counterexample replay.
+    """
+    schema_res = validate_dossier_schema(dossier)
+    errors = list(schema_res["errors"])
+    if not isinstance(dossier, dict):
+        return {"ok": False, "candidate_id": None, "terminal_verdict": None, "errors": errors}
+
+    verdict = str(dossier.get("terminal_verdict", "")).strip()
+    provenance = dossier.get("contract_provenance")
+    valid_prod_sources = 0
+    if isinstance(provenance, list):
+        for item in provenance:
+            if not isinstance(item, dict):
+                continue
+            src_path = str(item.get("path", "")).strip()
+            stype = str(item.get("source_type", "")).strip()
+            anchor = str(item.get("line_anchor", "")).strip()
+            claim = str(item.get("claim", "")).strip()
+            if src_path and is_test_path(src_path):
+                if "contract_provenance_cites_test_file" not in errors:
+                    errors.append("contract_provenance_cites_test_file")
+                continue
+            if stype in CONTRACT_SOURCE_TYPES and src_path and is_valid_line_anchor(anchor) and claim:
+                valid_prod_sources += 1
+    if valid_prod_sources == 0:
+        errors.append("contract_provenance_missing_production_source")
+
+    entrypoint = dossier.get("production_entrypoint") if isinstance(dossier.get("production_entrypoint"), dict) else {}
+    repro = dossier.get("minimal_reproduction") if isinstance(dossier.get("minimal_reproduction"), dict) else {}
+    normal = (
+        dossier.get("normal_behavior_counterexample")
+        if isinstance(dossier.get("normal_behavior_counterexample"), dict)
+        else {}
+    )
+    flog = dossier.get("falsification_log") if isinstance(dossier.get("falsification_log"), dict) else {}
+
+    repro_node = str(repro.get("test_nodeid", "")).strip()
+    normal_node = str(normal.get("test_nodeid", "")).strip()
+    if repro_node and normal_node and repro_node == normal_node:
+        errors.append("normal_counterexample_must_be_distinct_from_bug_repro")
+
+    if verdict == "confirmed":
+        if entrypoint.get("reachability") != "proven":
+            errors.append("confirmed_requires_proven_entrypoint")
+        if repro.get("base_outcome") != "failed":
+            errors.append("confirmed_requires_failing_base_reproduction")
+        if repro.get("patched_outcome") != "passed":
+            errors.append("confirmed_requires_passing_patched_reproduction")
+        if normal.get("base_outcome") != "passed":
+            errors.append("normal_behavior_not_passing_on_base")
+        if normal.get("patched_outcome") != "passed":
+            errors.append("normal_behavior_not_preserved_on_patch")
+
+        for check_key in FALSIFICATION_BOOLEAN_CHECKS:
+            if flog.get(check_key) is not True:
+                errors.append(f"incomplete_falsification_check:{check_key}")
+        if flog.get("upstream_collision"):
+            errors.append("confirmed_blocked_by_upstream_collision")
+        if isinstance(flog.get("disproved_reason"), str) and flog["disproved_reason"].strip():
+            errors.append("confirmed_contradicts_disproved_reason")
+        if flog.get("overfitting_signals"):
+            errors.append("overfitted_patch_blocked_from_confirmation")
+
+    elif verdict == "covered_upstream":
+        if repro.get("base_outcome") != "failed":
+            errors.append("covered_upstream_requires_base_reproduction")
+        if normal.get("base_outcome") != "passed":
+            errors.append("normal_behavior_not_passing_on_base")
+        for check_key in ("stale_evidence_checked", "upstream_collision_checked"):
+            if flog.get(check_key) is not True:
+                errors.append(f"incomplete_falsification_check:{check_key}")
+
+    elif verdict == "design_tradeoff_issue_only":
+        if repro.get("base_outcome") != "failed":
+            errors.append("issue_only_requires_failing_base_reproduction")
+        if repro.get("patched_outcome") != "not_applicable":
+            errors.append("issue_only_must_not_claim_verified_patch")
+        if normal.get("base_outcome") != "passed":
+            errors.append("normal_behavior_not_passing_on_base")
+        for check_key in ("faulty_test_assertion_checked", "stale_evidence_checked", "upstream_collision_checked"):
+            if flog.get(check_key) is not True:
+                errors.append(f"incomplete_falsification_check:{check_key}")
+
+    elif verdict == "excluded":
+        if not any(flog.get(k) is True for k in FALSIFICATION_BOOLEAN_CHECKS):
+            errors.append("excluded_requires_active_falsification_check")
+
+    strategy = dossier.get("patch_strategy")
+    if isinstance(strategy, dict):
+        kind = str(strategy.get("kind", "")).strip()
+        if kind in OVERFITTED_PATCH_KINDS and verdict == "confirmed":
+            errors.append(f"overfitted_patch_strategy:{kind}")
+
+    replay_spec = dossier.get("counterexample_replay")
+    if isinstance(replay_spec, dict):
+        suite_name = str(replay_spec.get("suite", "")).strip()
+        eval_rev = str(replay_spec.get("evaluated_revision", "")).strip()
+        if suite_name != "historical-counterexamples" or not eval_rev:
+            errors.append("invalid_counterexample_replay_spec")
+        else:
+            cache = _replay_cache if _replay_cache is not None else {}
+            if "historical-counterexamples" not in cache:
+                cache["historical-counterexamples"] = historical(workspace=workspace)
+            versions = {
+                row["version"]: row for row in cache["historical-counterexamples"]["versions"]
+            }
+            if eval_rev not in versions:
+                errors.append(f"unknown_counterexample_revision:{eval_rev}")
+            else:
+                rev_row = versions[eval_rev]
+                if verdict == "confirmed" and rev_row["failed"]:
+                    errors.append(f"counterexample_replay_rejected:{eval_rev}")
+                if verdict == "excluded" and not rev_row["failed"]:
+                    errors.append(f"excluded_replay_was_not_rejected:{eval_rev}")
+
+    return {
+        "ok": not errors,
+        "candidate_id": schema_res["candidate_id"],
+        "terminal_verdict": schema_res["terminal_verdict"],
+        "valid_production_contract_sources": valid_prod_sources,
+        "errors": errors,
+    }
+
+
+def verify_candidate_falsification_suite(
+    dossier_path: str | Path | None = None,
+    output: str | Path | None = None,
+    workspace: str | Path | None = None,
+) -> dict[str, Any]:
+    """Audit all candidate dossiers in a ledger against independent falsification rules."""
+    paths = WorkspacePaths.from_workspace(workspace)
+    target = Path(dossier_path) if dossier_path is not None else paths.dossiers_file
+    if not target.is_file():
+        return {"ok": False, "path": str(target), "errors": [f"dossier_file_not_found:{target}"], "items": []}
+    dossiers = load_dossiers(target)
+    if not dossiers:
+        return {"ok": False, "path": str(target), "errors": ["empty_dossier_ledger"], "items": []}
+
+    replay_cache: dict[str, dict[str, Any]] = {}
+    seen_ids: set[str] = set()
+    suite_errors: list[str] = []
+    items: list[dict[str, Any]] = []
+    for entry in dossiers:
+        res = verify_candidate_dossier(entry, workspace=workspace, _replay_cache=replay_cache)
+        cid = res.get("candidate_id")
+        if cid:
+            if cid in seen_ids:
+                suite_errors.append(f"duplicate_candidate_id:{cid}")
+            seen_ids.add(cid)
+        items.append(res)
+
+    ok = not suite_errors and all(item["ok"] for item in items)
+    report: dict[str, Any] = {
+        "checked_at": utcnow(),
+        "ok": ok,
+        "path": str(target),
+        "errors": suite_errors,
+        "summary": summarize_dossiers(dossiers),
+        "items": items,
+    }
+    if output is not None:
+        write_json(output, report)
+    return report
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("path", nargs="?")
-    ap.add_argument("--suite", choices=["historical-counterexamples"])
+    ap.add_argument("--suite", choices=["historical-counterexamples", "candidate-falsification"])
+    ap.add_argument("--dossier", type=Path, default=None, help="Audit a candidate dossier or dossier ledger JSON")
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--limit", type=int, default=3)
     ap.add_argument("--workspace", type=Path, default=None)
     ap.add_argument("--output", type=Path, default=None, help="Optional JSON output path")
     args = ap.parse_args(argv)
     paths = WorkspacePaths.from_workspace(args.workspace)
-    if args.suite:
-        result = historical(args.output, args.workspace)
-    elif args.all:
-        bundle_paths = sorted(paths.evidence_dir.glob("**/bundle.json"))[: args.limit]
-        rows: list[dict[str, Any]] = [
-            {"path": str(p), **validate_bundle(p, workspace=args.workspace)} for p in bundle_paths
-        ]
-        if not bundle_paths:
-            ledger = read_json(paths.ledger_file)
-            rows = [
-                {
-                    "candidate": k,
-                    "status": "legacy_unverified",
-                    "reason": "No runner-bound bundle and independent review; historical prose is not an execution receipt",
-                }
-                for k in list(ledger.get("submitted", {}))[: args.limit]
+    try:
+        if args.suite == "historical-counterexamples":
+            result = historical(args.output, args.workspace)
+        elif args.suite == "candidate-falsification" or args.dossier is not None:
+            result = verify_candidate_falsification_suite(args.dossier, args.output, args.workspace)
+        elif args.all:
+            bundle_paths = sorted(paths.evidence_dir.glob("**/bundle.json"))[: args.limit]
+            rows: list[dict[str, Any]] = [
+                {"path": str(p), **validate_bundle(p, workspace=args.workspace)} for p in bundle_paths
             ]
-        result = {"ok": bool(bundle_paths) and all(r["ok"] for r in rows), "items": rows}
-    elif args.path:
-        target = Path(args.path)
-        result = (
-            validate_receipt(target, workspace=args.workspace)
-            if target.name == "receipt.json"
-            else validate_bundle(target, workspace=args.workspace)
-        )
-        result.pop("receipt", None)
-    else:
-        ap.error("Supply a bundle/receipt, --all, or --suite")
+            if not bundle_paths:
+                ledger = read_json(paths.ledger_file)
+                rows = [
+                    {
+                        "candidate": k,
+                        "status": "legacy_unverified",
+                        "reason": "No runner-bound bundle and independent review; historical prose is not an execution receipt",
+                    }
+                    for k in list(ledger.get("submitted", {}))[: args.limit]
+                ]
+            result = {"ok": bool(bundle_paths) and all(r["ok"] for r in rows), "items": rows}
+        elif args.path:
+            target = Path(args.path)
+            result = (
+                validate_receipt(target, workspace=args.workspace)
+                if target.name == "receipt.json"
+                else validate_bundle(target, workspace=args.workspace)
+            )
+            result.pop("receipt", None)
+        else:
+            ap.error("Supply a bundle/receipt, --dossier, --all, or --suite")
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        result = {"ok": False, "errors": [str(exc)]}
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
