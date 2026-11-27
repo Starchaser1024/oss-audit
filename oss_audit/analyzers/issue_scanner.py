@@ -11,11 +11,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-from oss_audit.analyzers.contract_audit import audit_repo
+from oss_audit.analyzers.contract_audit import audit_repo, scan_protocol_signature_drift
 from oss_audit.analyzers.guard_asymmetry import (
     scan_async_guard_asymmetry,
     scan_hardcoded_from_dict,
     scan_sync_async_divergence,
+    scan_unawaited_async_calls,
 )
 from oss_audit.core.paths import WorkspacePaths
 from oss_audit.policy.claimcheck import check
@@ -212,7 +213,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--mode",
-        choices=["issues", "contracts", "async-guards", "sync-async", "from-dict"],
+        choices=[
+            "issues",
+            "contracts",
+            "signature-drift",
+            "async-guards",
+            "unawaited-async",
+            "sync-async",
+            "from-dict",
+        ],
         default="issues",
         help="Analysis mode (default: issues)",
     )
@@ -228,8 +237,12 @@ def main(argv: list[str] | None = None) -> int:
             parser.error(f"Source directory does not exist: {source_root}")
         if args.mode == "contracts":
             payload: Any = audit_repo(source_root, max_groups=args.max)
+        elif args.mode == "signature-drift":
+            payload = scan_protocol_signature_drift(source_root)
         elif args.mode == "async-guards":
             payload = scan_async_guard_asymmetry(source_root)
+        elif args.mode == "unawaited-async":
+            payload = scan_unawaited_async_calls(source_root)
         elif args.mode == "sync-async":
             payload = scan_sync_async_divergence(source_root)
         else:

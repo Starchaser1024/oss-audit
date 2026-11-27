@@ -6,7 +6,7 @@
 
 `oss-audit` is a zero-runtime-dependency Python engineering framework built to eliminate hallucinated, unverified, or duplicate AI-generated pull requests in open-source software. Rather than treating LLM prose or static heuristics as proof of a bug, `oss-audit` enforces four deterministic verification boundaries before any issue or pull request plan can be produced:
 
-1. **Static AST & Contract Asymmetry Analysis** — Identifies multi-implementation `Protocol`/`ABC` divergences ("$N - 1$ paths guarded"), sync/async exception-handling asymmetries, and broken `from_dict(cls, ...)` subclass factories as bounded investigation leads.
+1. **Static AST & Contract Asymmetry Analysis** — Identifies multi-implementation `Protocol`/`ABC` divergences ("$N - 1$ paths guarded") and signature/default-arity drift, unawaited coroutine calls, sync/async wrapper exception or return-propagation asymmetries, and broken `from_dict(cls, ...)` subclass factories as bounded investigation leads.
 2. **Reproducible RED -> GREEN Execution Receipts** — Runs isolated subprocesses that bind Git commit SHAs, file and lockfile SHA-256 digests, runtime module `__file__` import provenance, JUnit XML assertion failures, and per-node `pytest` outcomes to an append-only journal. Zero-test runs, skips, collection errors, shadowed imports, and tampered counts fail closed.
 3. **Upstream Policy & Claim Collision Router** — Evaluates pinned `CONTRIBUTING.md` snapshots alongside complete-pagination GitHub read checks (`FREE` / `TAKEN` / `UNKNOWN`) and active-PR collision queries to route candidates to `direct_pr`, `issue_first`, `issue_then_wait`, `issue_only`, or `hold`.
 4. **Independent Falsification Gate & Counterexample Replay** — Enforces explicit production contract provenance (*a failing test written by the investigator is never itself a product contract*), normal-behavior preservation on base and patched revisions, cryptographic reviewer bundle binding, and historical counterexample replay to reject overfitted word-lists or determiner heuristics (`confirmed` vs. `excluded`, `covered_upstream`, `design_tradeoff_issue_only`, and `insufficient_evidence`).
@@ -101,7 +101,9 @@ python -m oss_audit dossier summary
 
 # Run static AST analyzers on a local repository checkout
 python -m oss_audit scan ./path/to/repo --mode contracts
+python -m oss_audit scan ./path/to/repo --mode signature-drift
 python -m oss_audit scan ./path/to/repo --mode async-guards
+python -m oss_audit scan ./path/to/repo --mode unawaited-async
 python -m oss_audit scan ./path/to/repo --mode from-dict
 
 # Check upstream issue/PR claim and duplicate collision status (GET-only via `gh api`)
