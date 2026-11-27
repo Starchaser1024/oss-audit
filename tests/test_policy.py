@@ -64,7 +64,7 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(loaded["status"], "known")
         self.assertEqual(loaded["canonical_repo"], "agentscope-ai/agentscope")
 
-    def test_unknown_repo_is_not_inferred_from_repos_yaml(self):
+    def test_unknown_repo_is_not_inferred_from_repos_json(self):
         loaded = policy.load_policy("Skyvern-AI/skyvern", POLICY_PATH)
         self.assertEqual(loaded["status"], "unknown")
         self.assertIn("repo_not_in_policy_snapshot", loaded["reason"])

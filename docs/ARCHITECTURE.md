@@ -9,7 +9,7 @@
 ```mermaid
 flowchart LR
     subgraph Stage1["Stage 1: Lead Discovery"]
-        INV["repos.yaml + GitHub Search"] --> DISC["oss_audit.discovery"]
+        INV["repos.json + GitHub Search"] --> DISC["oss_audit.discovery"]
         AST["Protocol / Async / from_dict AST"] --> ANA["oss_audit.analyzers"]
     end
 
@@ -121,4 +121,4 @@ All modules resolve filesystem state via `oss_audit.core.paths.WorkspacePaths`:
 2. `OSS_AUDIT_HOME` environment variable
 3. Repository root auto-detected relative to `oss_audit/`
 
-Static configuration (`config/pipeline.json`, `policies/repos.json`, `repos.yaml`) falls back cleanly to the repository's checked-in defaults when an isolated workspace directory is used for dry-runs or integration tests.
+Static configuration (`config/pipeline.json`, `policies/repos.json`, `repos.json`) falls back cleanly to the repository's checked-in defaults when an isolated workspace directory is used for dry-runs or integration tests, while retaining seamless `repos.yaml` fallback for custom workspaces.

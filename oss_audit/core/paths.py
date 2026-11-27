@@ -51,10 +51,11 @@ class WorkspacePaths:
 
     @property
     def repos_inventory_file(self) -> Path:
-        candidate = self.root / "repos.yaml"
-        if candidate.is_file():
-            return candidate
-        return REPO_ROOT / "repos.yaml"
+        for filename in ("repos.json", "repos.yaml"):
+            candidate = self.root / filename
+            if candidate.is_file():
+                return candidate
+        return REPO_ROOT / "repos.json"
 
     @property
     def ledger_file(self) -> Path:

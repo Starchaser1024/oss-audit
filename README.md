@@ -56,6 +56,8 @@ oss-audit/
 │   └── repos.json       # Commit-pinned upstream contribution rules and deterministic routing samples
 ├── config/
 │   └── pipeline.json    # Worker concurrency, lease TTLs, resource watermarks, and quota configuration
+├── repos.json           # Target repository discovery inventory and local test command templates
+├── ledger.json          # Historical candidate triage, claim, and upstream submission ledger
 ├── examples/            # Verified upstream issue reports, PR writeups, and issue-only routing artifacts
 ├── docs/                # Architecture, evidence schema, policy routing, and scheduler specifications
 └── tests/               # 157 unit and subprocess integration tests + pinned counterexample & dossier fixtures

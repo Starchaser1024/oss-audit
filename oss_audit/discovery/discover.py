@@ -20,7 +20,7 @@ SEARCHES = [
 
 
 def repo_names(workspace: str | Path | None = None) -> list[str]:
-    """Load discovery repository names from ``repos.yaml``."""
+    """Load discovery repository names from ``repos.json`` (or legacy ``repos.yaml``)."""
     inventory = WorkspacePaths.from_workspace(workspace).repos_inventory_file
     text = inventory.read_text(encoding="utf-8")
     try:

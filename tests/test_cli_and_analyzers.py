@@ -57,6 +57,15 @@ class CliAndWorkspaceTests(unittest.TestCase):
                 paths = WorkspacePaths.from_workspace()
                 # Falls back cleanly to REPO_ROOT for static policy/config when workspace lacks overrides
                 self.assertEqual(paths.policy_file, REPO_ROOT / "policies" / "repos.json")
+                self.assertEqual(paths.repos_inventory_file, REPO_ROOT / "repos.json")
+
+                legacy_file = env_dir / "repos.yaml"
+                legacy_file.write_text('{"repos": []}\n', encoding="utf-8")
+                self.assertEqual(paths.repos_inventory_file, legacy_file.resolve())
+
+                json_file = env_dir / "repos.json"
+                json_file.write_text('{"repos": []}\n', encoding="utf-8")
+                self.assertEqual(paths.repos_inventory_file, json_file.resolve())
 
     def test_historical_counterexample_suite_rejects_naive_patches_and_accepts_catalog_fix(self):
         with tempfile.TemporaryDirectory() as tmp:

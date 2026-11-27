@@ -14,8 +14,8 @@
         "backend/packages/harness/deerflow/projects/documents.py",
         "backend/tests/blocking_io/test_project_documents_read_cancellation.py"
       ],
-      "evidence": "基线（a1b89d043）三条窗口全部复现：open 后取消 handle_closed_after_cancel=False；read 在飞时取消 order=[read_started,close_started,read_finished]；close 在飞时重复取消 escaped_before_close_settled=True。修复后新文件 3 passed，相邻 18 passed + 21 passed，ruff 干净；同一新文件在未改源码上 3 failed",
-      "blocker": "作者的 PR #7493 于 2026-10-25T09:28:15Z 开出（Fixes #7491，2 文件 +213/-3），重复工作，未 push 未开 PR",
+      "evidence": "Reproduced all three cancellation race windows on baseline a1b89d043: cancel after open left handle_closed_after_cancel=False; cancel during in-flight read produced order=[read_started, close_started, read_finished]; repeated cancel during in-flight close set escaped_before_close_settled=True. With fix: 3 passed in new regression module (3 failed on unpatched source), 18 + 21 passed in adjacent suites, ruff clean.",
+      "blocker": "Issue author opened PR #7493 at 2026-10-25T09:28:15Z (Fixes #7491, 2 files +213/-3); halted local branch to avoid duplicate submission (not pushed, no PR opened).",
       "checked_at": "2026-10-25T09:55:00Z"
     },
     "agno-agi/agno#11144": {
@@ -25,7 +25,7 @@
       "repo_dir": "repos/agno",
       "diff": "agno-11144.diff",
       "pr_body": "pr-body-agno-11144.md",
-      "blocker": "issue 仍无 ready 标签、无评论（2026-10-20 复查）；外部 PR 必须 Fixes 带 ready 的 issue",
+      "blocker": "Issue still lacked the maintainer-assigned ready label and had zero comments when re-checked on 2026-10-20; external PRs must link an issue carrying the ready label.",
       "files": [
         "libs/agno/agno/tools/function.py",
         "libs/agno/tests/unit/run/test_requirement.py"
@@ -36,15 +36,15 @@
     "bytedance/deer-flow@credential-blank-env": {
       "date": "2026-10-19",
       "state": "fix-ready-local",
-      "issue": "待开（本地已有复现+修复+测试）",
+      "issue": "pending (local reproduction, fix, and regression tests ready)",
       "repo_dir": "repos/deer-flow",
       "diff": "deer-flow-cred-blank-env.diff",
       "files": [
         "backend/packages/harness/deerflow/models/credential_loader.py",
         "backend/tests/test_credential_loader.py"
       ],
-      "evidence": "CLAUDE_CODE_OAUTH_TOKEN='   ' / '\n' / '\t' → load_claude_code_credential() 返回 None，而磁盘上有有效 ~/.claude/.credentials.json；空串 '' 却正确回退。共 55 passed（单文件）/114 passed（相邻）",
-      "blocker": "deer-flow 是 issue-first；且本机火绒会隔离 skillscan 源码，部分相邻测试无法运行"
+      "evidence": "Whitespace-only CLAUDE_CODE_OAUTH_TOKEN ('   ', '\\n', '\\t') caused load_claude_code_credential() to return None instead of falling back to a valid on-disk .claude/.credentials.json file, whereas an empty string '' fell back as expected; 55 passed in credential_loader suite, 114 passed across adjacent suites.",
+      "blocker": "Upstream repository requires issue-first workflow before opening a pull request."
     },
     "bytedance/deer-flow#7139": {
       "date": "2026-10-19",
@@ -68,9 +68,9 @@
         "src/agentscope/app/storage/_base.py",
         "tests/storage_redis_test.py"
       ],
-      "evidence": "RedisStorage.upsert_channel 允许第二个 channel 抢同一 platform bot id；SQL 抛 ValueError。RED: 1 failed/2 passed；GREEN: 3 passed；相邻 storage 138 passed、channel 相关 52 passed",
+      "evidence": "RedisStorage.upsert_channel allowed a second channel to claim an already-bound platform bot ID, whereas the SQL backend raised ValueError. RED: 1 failed / 2 passed; GREEN: 3 passed; adjacent suites: 138 passed (storage) and 52 passed (channel).",
       "pr_body": "pr-bodies/agentscope-channel-botid.md",
-      "note": "保守版分支 fix/redis-channel-bot-uniqueness (f273491) 保留为对照，未 push"
+      "note": "Conservative reference branch fix/redis-channel-bot-uniqueness (f273491) retained locally for comparison and never pushed."
     },
     "NousResearch/hermes-agent#141504": {
       "date": "2026-10-20",
@@ -80,13 +80,12 @@
       "commit": "6d965147",
       "diff": "hermes-141504-ctime.diff",
       "pr_body": "pr-bodies/hermes-141504-file-version-ctime.md",
-      "pr_body_zh": "pr-bodies/hermes-141504-file-version-ctime.zh.md",
       "files": [
         "tools/file_tools_read_tracking.py",
         "tests/tools/test_known_file_write_baseline.py"
       ],
-      "evidence": "Windows 上 _file_version() 混用 os.fstat 与 os.stat 的 st_ctime_ns，二者差约 1ms → 版本恒为 None → write_file 覆盖一律 stale_write_blocked。改前 18 failed（两个文件）/ 改后 22 passed + 1 个无关 CRLF 用例失败；新增用例 RED 3.45s → GREEN 3.60s",
-      "blocker": "CI 未启动：首次贡献者的 fork PR 需要维护者批准 workflow；无 CLA",
+      "evidence": "On Windows, _file_version() mixed st_ctime_ns from os.fstat and os.stat (~1ms discrepancy), causing file version checks to return None and blocking every overwrite with stale_write_blocked. Before fix: 18 failed across two test files; after fix: 22 passed (1 unrelated pre-existing CRLF failure); new regression test RED 3.45s -> GREEN 3.60s.",
+      "blocker": "CI workflows awaiting maintainer approval for first-time fork contributor; no CLA required.",
       "pr": 141881,
       "pr_url": "https://github.com/NousResearch/hermes-agent/pull/141881"
     },
@@ -104,16 +103,16 @@
         "tests/test_room_io.py"
       ],
       "evidence": {
-        "red": "tests/test_room_io.py::test_audio_input_flushes_silence_frame_with_all_channels → ValueError: data length must be >= num_channels * samples_per_channel * sizeof(int16) (livekit/rtc/audio_frame.py:61)",
+        "red": "tests/test_room_io.py::test_audio_input_flushes_silence_frame_with_all_channels -> ValueError: data length must be >= num_channels * samples_per_channel * sizeof(int16) (livekit/rtc/audio_frame.py:61)",
         "green": "2 passed, 59 deselected; full file 61 passed",
         "lint": "ruff check + ruff format --check clean"
       },
-      "blocker": "issue 已由 #7968 修复并关闭（2026-10-20T14:27Z，merge 14:26:55Z by longcw）；本地补丁仅留档"
+      "blocker": "Issue resolved and closed upstream by PR #7968 (merged 2026-10-20T14:26:55Z by longcw); local patch archived without submission."
     },
     "deepset-ai/haystack@structured-output-commonmark-fences": {
       "date": "2026-10-22",
       "state": "fix-ready-local",
-      "issue": "待开（本地已有复现+修复+测试）",
+      "issue": "pending (local reproduction, fix, and regression tests ready)",
       "repo_dir": "repos/haystack",
       "base_commit": "34a1a09",
       "diff": "haystack-structured-output-fences.diff",
@@ -122,13 +121,13 @@
         "test/hooks/structured_output/test_hooks.py",
         "releasenotes/notes/structured-output-commonmark-fences-0481fcbd969be34d.yaml"
       ],
-      "evidence": "main 上 ~~~json 围栏回复被判非法 JSON：max_retries=0 存 None；RED 6 failed/30 passed；GREEN 36 passed、test/hooks 382 passed、agents 358 passed；ruff 0.16.0 干净",
-      "blocker": "haystack PR 模板要求 fixes #N，需用户先开 issue；未 push"
+      "evidence": "On main, CommonMark tilde-fenced ~~~json responses were rejected as invalid JSON and stored None when max_retries=0; RED: 6 failed / 30 passed; GREEN: 36 passed, test/hooks 382 passed, agents 358 passed; ruff 0.16.0 clean.",
+      "blocker": "Haystack PR template requires linking an upstream issue (fixes #N) before opening a pull request; branch not pushed."
     },
     "pydantic/pydantic-ai@plan-add-item-duplicate-valueerror": {
       "date": "2026-10-23",
       "state": "fix-ready-local",
-      "issue": "待开（本地已有复现+修复+测试）",
+      "issue": "pending (local reproduction, fix, and regression tests ready)",
       "repo_dir": "repos/pydantic-ai",
       "base_commit": "b5661e9",
       "branch": null,
@@ -137,8 +136,8 @@
         "src/pydantic_ai_harness/pydantic_ai_harness/planning/_store.py",
         "tests/harness/planning/test_stores.py"
       ],
-      "evidence": "main 上 SqlitePlanStore.add_item 重复 id 抛 sqlite3.IntegrityError，InMemory/Redis 抛 ValueError（协议 _store.py:77-84 要求后者）；RED 1 failed/1 passed，GREEN test_stores.py 29 passed、planning 163 passed；ruff 干净",
-      "blocker": "未 push、未开 issue/PR（需用户先审英文稿）；PostgresPlanStore 同形状未改（不 import asyncpg）"
+      "evidence": "On main, SqlitePlanStore.add_item raised sqlite3.IntegrityError on duplicate IDs instead of ValueError as required by the PlanStore protocol (_store.py:77-84) and implemented by InMemory/Redis stores; RED: 1 failed / 1 passed; GREEN: test_stores.py 29 passed, planning 163 passed; ruff clean.",
+      "blocker": "Held pending upstream issue filing and publication authorization; PostgresPlanStore shares the same pattern and was left untouched to avoid introducing an asyncpg dependency."
     },
     "agentscope-ai/agentscope#3436": {
       "date": "2026-10-23",
@@ -162,7 +161,7 @@
     "agentscope-ai/agentscope@system-message-null-content": {
       "date": "2026-10-24",
       "state": "fix-ready-local",
-      "issue": "待开（issue-first；英文稿已写好，等用户审）",
+      "issue": "pending (issue-first workflow required before opening PR)",
       "repo_dir": "repos/agentscope",
       "branch": "fix/system-message-null-content",
       "commit": "9a8bea0",
@@ -178,12 +177,12 @@
         "tests/formatter_system_message_test.py"
       ],
       "evidence": "textless SystemMsg -> content=None in 6 multi-agent formatters; RED 6 subtest failures on main; GREEN 3 passed; adjacent 136 passed; black/flake8/pylint/mypy clean",
-      "blocker": "agentscope 是 issue-first，需用户先审英文稿并开 issue；未 push、未开 PR"
+      "blocker": "Upstream repository requires issue-first workflow before opening a pull request; branch not pushed."
     },
     "deepset-ai/haystack@skill-manifest-nested-skill-md": {
       "date": "2026-10-24",
       "state": "fix-ready-local",
-      "issue": "待开（本地已有复现+修复+测试）",
+      "issue": "pending (local reproduction, fix, and regression tests ready)",
       "repo_dir": "repos/haystack",
       "base_commit": "76fc2d3",
       "diff": "haystack-skill-manifest-nested-skill-md.diff",
@@ -192,13 +191,13 @@
         "test/skill_stores/file_system/test_skill_store.py",
         "releasenotes/notes/skill-store-manifest-nested-skill-md-4b1c9f0e2ab7d355.yaml"
       ],
-      "evidence": "main 上 examples/demo/SKILL.md 可被 read_skill_file 读出但不出现在 load_skill 清单；RED 1 failed（assert [] == ['examples/demo/SKILL.md']），GREEN 单文件 33 passed/2 skipped、test/skill_stores+test/tools/skills 53 passed；ruff 0.16.0 check+format 干净",
-      "blocker": "未 push、未开 issue/PR（需用户先审英文稿）；haystack 社区贡献者同时只能有一个 open PR"
+      "evidence": "On main, nested examples/demo/SKILL.md could be read via read_skill_file but was omitted from the load_skill manifest; RED: 1 failed (assert [] == ['examples/demo/SKILL.md']); GREEN: 33 passed / 2 skipped in test_skill_store.py, 53 passed across skill_stores and tools/skills; ruff 0.16.0 check and format clean.",
+      "blocker": "Held pending upstream issue filing and contributor open-PR concurrency limit (maximum 1 open community PR in haystack)."
     },
     "stanfordnlp/dspy@toolcalls-serialization-fallback": {
       "date": "2026-10-26",
       "state": "fix-ready-local",
-      "issue": "待开（dspy CONTRIBUTING:31 允许 minor fix 直接提 PR）",
+      "issue": "not required (dspy CONTRIBUTING.md:31 permits direct PRs for minor bugfixes)",
       "repo_dir": "repos/dspy",
       "base": "main@15aad8d",
       "diff": "scratch/dspy-toolcalls-fallback.diff",
@@ -207,8 +206,8 @@
         "dspy/adapters/types/tool.py",
         "tests/adapters/test_tool.py"
       ],
-      "evidence": "基线 15aad8d：同一不可编码工具值走 serialize_for_json 正常（{\"amount\": 1200, \"record\": \"record #7\"}），走 ToolCalls.tool_call_results 抛 PydanticSerializationError，dspy.History.model_dump 与 program.save 均崩；修复（fallback=str）后新测试 1 passed，未改源码上 1 failed；相邻 tests/adapters+example+base_module 511 passed / 4 skipped，tests/predict+tests/streaming 800 passed / 151 skipped / 2 errors（litellm 测试服务器缺失，基线同）",
-      "blocker": "无 GitHub 写操作，等用户审英文 PR 正文后由其发布",
+      "evidence": "On baseline 15aad8d, non-JSON-native tool outputs serialized cleanly through serialize_for_json ({'amount': 1200, 'record': 'record #7'}) but raised PydanticSerializationError in ToolCalls.tool_call_results, breaking dspy.History.model_dump and program.save. Adding fallback=str fixed the regression: 1 failed on unpatched source -> 1 passed; adjacent adapters/example/base_module 511 passed / 4 skipped; predict/streaming 800 passed / 151 skipped (2 baseline-identical missing litellm test server errors).",
+      "blocker": "Dry-run verification complete; held pending explicit publication authorization (zero GitHub writes performed).",
       "checked_at": "2026-10-26T00:00:00Z"
     },
     "deepset-ai/haystack@docx-cell-textbox": {
@@ -226,9 +225,10 @@
       "diff": "scratch/haystack-docx-cell-textbox.diff",
       "probe": "scratch/haystack-docx-cell-textbox-and-pb-link-probe.py",
       "evidence": "baseline exit=1 content='CELL BODY'; fix exit=0 content='CELL BODY\nCALLOUT IN CELL'; new parametrized test 2 failed on main -> 2 passed; docx file 53 passed; ruff 0.16.0 clean; no issue/PR exists for this shape and no open PR touches the cell branch",
-      "blocker": "awaiting user approval for the English PR body; PR #13164 touches the same file (body-level w:sdt) and may conflict at rebase"
+      "blocker": "Held pending explicit publication authorization; upstream PR #13164 touches the same converter module (body-level w:sdt) and may conflict on rebase."
     },
     "agentscope-ai/agentscope@read-suggestion-glob-escape": {
+      "date": "2026-10-26",
       "state": "fix-ready-local",
       "summary": "Read.generate_suggestions appended '/**' to the literal parent without glob.escape, so a directory named e.g. 'reports [2024]' produced a rule that matched 'reports 2' and did not match itself; #3378 fixed the same pattern in Write/Edit only.",
       "base": "bdad647d2fee7d66597681ecd89e086b7800dd2a",
@@ -257,17 +257,17 @@
         ".github/scripts/validate_agent_skill_links.py",
         ".github/tests/test_validate_agent_skill_links.py"
       ],
-      "evidence": "基线 67ba500 上新加 4 条用例全红（missing local resource: references/guide%20file.md / section%231.md；编码遍历报 missing 而非 escapes）。修复后 4 条全绿，整文件 14 passed + 1 error（test_rejects_symlink_target 在未改基线上同样 WinError 1314，非本次回归）；CI 步骤 python .github/scripts/validate_agent_skill_links.py skills 退出 0。",
-      "blocker": "issue 只有 python + triage 标签，0 评论 0 assignee；仓库要求 ready-for-implementation 标签或维护者同意才评审，故不提前开 PR。",
+      "evidence": "Four new regression cases failed on baseline 67ba500 (missing local resource for references/guide%20file.md and section%231.md; percent-encoded traversal reported missing instead of escapes). All 4 passed after fix; full file 14 passed (plus 1 baseline-identical unprivileged symlink test error on Windows); CI check python .github/scripts/validate_agent_skill_links.py skills exited 0.",
+      "blocker": "Issue carried only python + triage labels with 0 comments and 0 assignees; repository policy requires ready-for-implementation label or maintainer approval prior to PR submission.",
       "watcher": "a4a9664c0223",
       "pr_body": "pr-bodies/agent-framework-9694.md",
-      "closed_by": "leilei3167 的 PR #9701 已由 eavanvalkenburg 合入 (2026-10-26T16:35:03Z)，主线脚本 :11/:55 已是 unquote 版本",
-      "watcher_outcome": "watcher 在提交前命中评论发现，写 blocked 后停止，未 push、未开 PR"
+      "closed_by": "PR #9701 by leilei3167 merged by eavanvalkenburg at 2026-10-26T16:35:03Z; upstream script lines 11 and 55 now apply urllib.parse.unquote.",
+      "watcher_outcome": "Pre-submission watcher detected competing upstream PR/comment activity, recorded blocked state, and halted without pushing or opening a duplicate PR."
     },
     "bytedance/deer-flow@db-catalog-stale-row": {
       "date": "2026-10-27",
       "state": "fix-ready-local",
-      "issue": "待开（issue-first，等用户确认）",
+      "issue": "pending (issue-first workflow required)",
       "repo_dir": "repos/deer-flow",
       "base": "main@c46906aa4",
       "diff": "scratch/deerflow-2026-10-27-stale-catalog.diff",
@@ -278,15 +278,15 @@
         "backend/tests/test_managed_subagent_store.py",
         "backend/tests/test_agent_store_sql.py"
       ],
-      "evidence": "基线 c46906aa4：SqlManagedSubagentStore.list() 对一条 extra=forbid 行抛 ValidationError（file 后端返回 [planner]）；两个新测试 RED（1 failed, 10 passed / 1 failed, 17 passed），修复后 29 passed、相邻 49 passed，ruff 0.15.12 check+format 全绿；test_custom_agent.py::TestAgentsAPIErrorDetail 5 个 Windows 路径断言失败基线同样失败",
-      "blocker": "deer-flow 为 issue-first；cron 禁止 GitHub 写操作，等用户确认后开 issue 再开 PR",
+      "evidence": "On baseline c46906aa4, SqlManagedSubagentStore.list() raised ValidationError on a single stale extra=forbid row whereas the file backend returned valid entries ([planner]); 2 new tests failed on baseline (1 failed / 10 passed and 1 failed / 17 passed) and passed after fix (29 passed in target suites, 49 passed in adjacent suites, ruff 0.15.12 check and format clean; 5 unrelated path assertion failures in TestAgentsAPIErrorDetail reproduced identically on baseline).",
+      "blocker": "Upstream repository requires issue-first workflow; pipeline performs zero GitHub write operations without explicit authorization.",
       "branch": "fix/db-catalog-stale-row",
       "commit": "f293decf1"
     },
     "deepset-ai/haystack@csv-mime-windows": {
       "date": "2026-10-27",
       "state": "fix-ready-local",
-      "issue": "待开（haystack pr-first，但按惯例先开 issue 再 Fixes #N；等用户确认）",
+      "issue": "pending (issue link conventional before opening PR)",
       "repo_dir": "worktrees/haystack-1027",
       "base": "origin/main@61f8772",
       "diff": "scratch/haystack-2026-10-27-csv-mime.diff",
@@ -302,7 +302,7 @@
     "agentscope-ai/agentscope@redis-lease-utc": {
       "date": "2026-10-27",
       "state": "fix-ready-local",
-      "issue": "待开（agentscope 要求先开 issue 并在 issue 下 /assign 认领）",
+      "issue": "pending (agentscope requires opening an issue and claiming via /assign before PR)",
       "repo_dir": "worktrees/agentscope-lease-tz",
       "base": "origin/main 91e94cf (2.0.12dev)",
       "branch": "fix/redis-storage-utc-leases",
@@ -316,7 +316,6 @@
       "evidence": "scratch/agentscope-lease-tz-repro3.py: redis expired=1 + re-acquire True + TypeError on aware-now; sql expired=0 at the same instant. RED 3 failed / 1 passed, GREEN 4 passed, 146 passed across storage+lease suites; black/flake8/mypy/pylint clean.",
       "pr_body": "scratch/agentscope-2026-10-27-lease-tz-pr.md",
       "issue_body": "scratch/agentscope-2026-10-27-lease-tz-issue.final.md",
-      "review_zh": "scratch/agentscope-2026-10-27-lease-tz-review.zh.md",
       "verified_on": "repro re-run on main 91e94cf 2026-10-27 (still reproduced); rebase clean; 146 passed after rebase"
     },
     "bytedance/deer-flow#7598": {
@@ -337,6 +336,7 @@
   },
   "submitted": {
     "bytedance/deer-flow#7140": {
+      "date": "2026-10-20",
       "fixes": "bytedance/deer-flow#7139",
       "branch": "fix/credential-unusable-source-fallthrough",
       "commit": "41485e9",
@@ -360,6 +360,7 @@
       }
     },
     "agentscope-ai/agentscope#3382": {
+      "date": "2026-10-20",
       "state": "open",
       "fixes": "agentscope-ai/agentscope#3381",
       "checks": "notify / on-push SUCCESS, on-review SKIPPED",
@@ -367,6 +368,8 @@
       "needs": "maintainer review"
     },
     "NousResearch/hermes-agent#141881": {
+      "date": "2026-10-20",
+      "state": "open",
       "fixes": "NousResearch/hermes-agent#141504",
       "branch": "fix/windows-file-version-ctime",
       "commits": [
@@ -378,13 +381,14 @@
         "tests/tools/test_known_file_write_baseline.py",
         "contributors/emails/<contributor-email>"
       ],
-      "needs": "首次贡献者 workflow 批准；维护者评审",
+      "needs": "First-time contributor CI workflow approval and maintainer review",
       "comments": [
-        "whyyagswhy (verifier bot) 2026-10-20T05:20Z: Linux 5 files 110 passed, 0 failed, ruff clean; RED 复现；gap = Windows 仅在 Linux 上模拟验证、邮箱映射文件仅目测",
-        "Starchaser1024 2026-10-20T05:48Z: 补真 Windows 凭据（改前 18 failed / 改后 22 passed，1 个既存 CRLF 用例；相邻 7 failed 在 stash 后同样失败）"
+        "whyyagswhy (verifier bot) 2026-10-20T05:20Z: Linux 5 files 110 passed, 0 failed, ruff clean; RED reproduced; noted Windows behavior was initially mocked on Linux",
+        "Starchaser1024 2026-10-20T05:48Z: Added native Windows test run evidence (18 failed before fix -> 22 passed after fix, 1 pre-existing CRLF failure; 7 adjacent failures reproduced identically on unpatched baseline)"
       ]
     },
     "agentscope-ai/agentscope#3401": {
+      "date": "2026-10-22",
       "state": "merged",
       "fixes": "agentscope-ai/agentscope#3400",
       "repo_dir": "repos/agentscope",
@@ -416,6 +420,7 @@
       ]
     },
     "deepset-ai/haystack#13381": {
+      "date": "2026-10-22",
       "state": "merged",
       "fixes": "deepset-ai/haystack#13380",
       "repo_dir": "repos/haystack",
@@ -443,14 +448,14 @@
       ],
       "blocker": "awaiting review from davidsbatista; PR ready for review (draft false)",
       "head_sha": "de63990",
-      "review_feedback": "davidsbatista 2026-10-22T10:29Z: 3 nits (release note wording/name, comment placement, logger.debug) — all addressed in de63990",
+      "review_feedback": "davidsbatista 2026-10-22T10:29Z: 3 nits (release note wording/name, comment placement, logger.debug) -- all addressed in de63990",
       "merged_at": "2026-10-23T12:32:31Z",
       "merged_by": "davidsbatista",
       "merge_commit": "76fc2d3d7492ec243eed40eb939a836f2a8b29da"
     },
     "NousResearch/hermes-agent#142868": {
       "date": "2026-10-21",
-      "state": "submitted",
+      "state": "open",
       "repo_dir": "repos/hermes-agent",
       "branch": "feat/msix-package-location",
       "commits": [
@@ -466,13 +471,13 @@
         "contributors/emails/<contributor-email>"
       ],
       "pr_body": "pr-bodies/hermes-141761-msix-location.md",
-      "pr_body_zh": "pr-bodies/hermes-141761-msix-location.zh.md",
-      "evidence": "新增 win32 location kind msix_package（HKCU AppModel Repository 的 PackageRootFolder，family 名不区分大小写）；本机真 Store 包 NanaZip → available / 7.0.1843.0；未安装 family → missing_app；tests/hermes_platform 120 passed / 1 既存失败（tmp_path 分隔符）",
-      "blocker": "首次贡献者 workflow 待批准；评审；core 合并后 blender 插件 manifest 需另开 PR",
+      "evidence": "Added win32 msix_package location kind resolving PackageRootFolder from HKCU AppModel Repository (case-insensitive package family matching); verified installed MSIX package resolves to available while unregistered family resolves to missing_app; tests/hermes_platform: 120 passed (1 pre-existing path-separator failure on baseline).",
+      "blocker": "Awaiting first-time contributor CI workflow approval and maintainer review; plugin manifest follow-up deferred until core support merges.",
       "pr": 142868,
       "pr_url": "https://github.com/NousResearch/hermes-agent/pull/142868"
     },
     "agentscope-ai/agentscope#3441": {
+      "date": "2026-10-23",
       "state": "open",
       "fixes": "agentscope-ai/agentscope#3438",
       "repo_dir": "repos/agentscope",
@@ -496,6 +501,7 @@
       ]
     },
     "bytedance/deer-flow#7462": {
+      "date": "2026-10-25",
       "state": "merged",
       "merged_at": "2026-10-25T07:13:42Z",
       "merged_by": "WillemJiang",
@@ -534,7 +540,7 @@
           ],
           "fix_commit": "bde53bbf4",
           "addressed_at": "2026-10-25T01:55:50Z",
-          "status": "code pushed; reply comment and PR body update held for user approval"
+          "status": "code pushed; reply comment and PR body update held pending review"
         },
         {
           "reviewer": "willem-bd",
@@ -545,7 +551,7 @@
           ],
           "fix_commit": "d0c5170dd",
           "verification": "suffixless twin added (events); local: 19 passed / 2 skipped, -k local_sandbox 281 passed / 74 skipped, ruff clean; FIFO mutation not rerun on Windows (no mkfifo)",
-          "status": "code pushed; reply held for user approval"
+          "status": "code pushed; reply held pending review"
         },
         {
           "reviewer": "willem-bd",
@@ -553,7 +559,7 @@
           "verdict": "COMMENTED, P3 verified fixed; no new findings at this head",
           "items": [],
           "verification": "POSIX mutation rerun by the reviewer: dropping O_NONBLOCK from the sniff open reddens only the suffixless case ('append blocked while classifying the destination', write thread alive at join(5)); the suffix-settles test stays green. Full file 21 passed; PNG-magic / CRLF / suffixless-FIFO spot battery green; ruff check + format --check clean. Two P2s still hold on this head; bde53bbf->d0c5170d touched only the test file.",
-          "status": "no action needed; reply draft discarded because he had already run the half we could not run on Windows"
+          "status": "no action needed; reviewer independently executed the POSIX mutation verification"
         },
         {
           "reviewer": "WillemJiang",
@@ -712,33 +718,54 @@
     }
   },
   "prepared": {
-    "2026-10-20": [
-      "deer-flow",
-      "agno",
-      "agentscope",
-      "hermes-agent"
-    ],
-    "2026-10-21": [
-      "haystack",
-      "agentscope",
-      "deer-flow"
-    ],
-    "2026-10-22": [
-      "skyvern",
-      "haystack",
-      "agno"
-    ],
-    "2026-10-23": [
-      "skyvern",
-      "pydantic-ai",
-      "agentscope"
-    ],
-    "2026-10-24": [
-      "agentscope",
-      "haystack",
-      "deer-flow"
-    ],
+    "2026-10-20": {
+      "date": "2026-10-20",
+      "state": "worktrees-prepared",
+      "repos": [
+        "deer-flow",
+        "agno",
+        "agentscope",
+        "hermes-agent"
+      ]
+    },
+    "2026-10-21": {
+      "date": "2026-10-21",
+      "state": "worktrees-prepared",
+      "repos": [
+        "haystack",
+        "agentscope",
+        "deer-flow"
+      ]
+    },
+    "2026-10-22": {
+      "date": "2026-10-22",
+      "state": "worktrees-prepared",
+      "repos": [
+        "skyvern",
+        "haystack",
+        "agno"
+      ]
+    },
+    "2026-10-23": {
+      "date": "2026-10-23",
+      "state": "worktrees-prepared",
+      "repos": [
+        "skyvern",
+        "pydantic-ai",
+        "agentscope"
+      ]
+    },
+    "2026-10-24": {
+      "date": "2026-10-24",
+      "state": "worktrees-prepared",
+      "repos": [
+        "agentscope",
+        "haystack",
+        "deer-flow"
+      ]
+    },
     "agno-agi/agno#11284": {
+      "date": "2026-10-24",
       "state": "patch-verified-contested",
       "issue_url": "https://github.com/agno-agi/agno/issues/11284",
       "worktree": "worktrees/agno-11284",
@@ -748,36 +775,49 @@
       "tests": "new unit regression red before fix; 49 passed in test_hitl_output_review.py; 849 passed, 9 skipped across tests/unit/workflow",
       "blocker": "rupak-eng commented 2026-10-24T04:32:34Z claiming the issue with the same fail-closed fix; no ready label yet. Watch job paused to avoid duplicate submission."
     },
-    "2026-10-25": [
-      "haystack",
-      "openai-agents-python",
-      "hermes-agent"
-    ],
-    "2026-10-26": [
-      "dspy",
-      "haystack",
-      "agentscope"
-    ],
-    "2026-10-27": [
-      "deer-flow",
-      "haystack",
-      "agno"
-    ]
-  },
-  "agno-agi/agno#csvreader-page-size-zero": {
-    "state": "prepared-awaiting-ready-label",
-    "repo": "agno-agi/agno",
-    "base": "origin/main e23d63f",
-    "worktree": "worktrees/agno-1027-csvpage",
-    "branch": "fix/csvreader-non-positive-page-size",
-    "commit": "5209da1",
-    "summary": "CSVReader.async_read(page_size=0) silently returns [] for CSVs above 10 rows (range() arg 3 must not be zero swallowed by the broad except); FieldLabeledCSVReader already rejects <= 0 since #10602. Guard tightened to <= 0.",
-    "tests": "RED 6 failed / 12 passed (all failures DID NOT RAISE on page_size=0); GREEN 52 passed in test_csv_reader.py, 127 passed in the two sibling csv modules, 338 passed / 1 skipped / 12 import-only collection errors across tests/unit/reader; ruff 0.15.20 format+check over libs/agno clean; mypy 2.1.0 clean on agno/knowledge/reader",
-    "blocker": "agno CONTRIBUTING.md:25 requires the linked issue to carry the maintainer-assigned `ready` label; PRs without it are auto-closed. No open ready-labeled bug issue to attach to.",
-    "drafts": [
-      "scratch/agno-2026-10-27-issue-body.md",
-      "scratch/agno-2026-10-27-pr-body.md",
-      "scratch/agno-2026-10-27-csvreader-page-size.diff"
-    ]
+    "2026-10-25": {
+      "date": "2026-10-25",
+      "state": "worktrees-prepared",
+      "repos": [
+        "haystack",
+        "openai-agents-python",
+        "hermes-agent"
+      ]
+    },
+    "2026-10-26": {
+      "date": "2026-10-26",
+      "state": "worktrees-prepared",
+      "repos": [
+        "dspy",
+        "haystack",
+        "agentscope"
+      ]
+    },
+    "2026-10-27": {
+      "date": "2026-10-27",
+      "state": "worktrees-prepared",
+      "repos": [
+        "deer-flow",
+        "haystack",
+        "agno"
+      ]
+    },
+    "agno-agi/agno#csvreader-page-size-zero": {
+      "date": "2026-10-27",
+      "state": "prepared-awaiting-ready-label",
+      "repo": "agno-agi/agno",
+      "base": "origin/main e23d63f",
+      "worktree": "worktrees/agno-1027-csvpage",
+      "branch": "fix/csvreader-non-positive-page-size",
+      "commit": "5209da1",
+      "summary": "CSVReader.async_read(page_size=0) silently returns [] for CSVs above 10 rows (range() arg 3 must not be zero swallowed by the broad except); FieldLabeledCSVReader already rejects <= 0 since #10602. Guard tightened to <= 0.",
+      "tests": "RED 6 failed / 12 passed (all failures DID NOT RAISE on page_size=0); GREEN 52 passed in test_csv_reader.py, 127 passed in the two sibling csv modules, 338 passed / 1 skipped / 12 import-only collection errors across tests/unit/reader; ruff 0.15.20 format+check over libs/agno clean; mypy 2.1.0 clean on agno/knowledge/reader",
+      "blocker": "agno CONTRIBUTING.md:25 requires the linked issue to carry the maintainer-assigned `ready` label; PRs without it are auto-closed. No open ready-labeled bug issue to attach to.",
+      "drafts": [
+        "scratch/agno-2026-10-27-issue-body.md",
+        "scratch/agno-2026-10-27-pr-body.md",
+        "scratch/agno-2026-10-27-csvreader-page-size.diff"
+      ]
+    }
   }
 }

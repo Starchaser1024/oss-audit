@@ -5,8 +5,9 @@ candidate to one of:
 
 ``direct_pr``, ``issue_first``, ``issue_then_wait``, ``issue_only``, ``hold``.
 
-Missing or stale policy/context fields fail closed as ``hold``. Legacy
-``repos.yaml`` is intentionally never consulted as a policy fallback.
+Missing or stale policy/context fields fail closed as ``hold``. Root discovery
+inventory (``repos.json`` / legacy ``repos.yaml``) is intentionally never
+consulted as a policy fallback.
 """
 
 from __future__ import annotations

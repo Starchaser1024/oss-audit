@@ -70,7 +70,9 @@ def load_inventory(path: Path) -> dict[str, Any]:
 
         return yaml.safe_load(text)
     except ImportError as exc:
-        raise RuntimeError("repos.yaml is neither JSON-compatible YAML nor readable via PyYAML") from exc
+        raise RuntimeError(
+            f"{path.name} is not valid JSON and PyYAML is not installed for legacy YAML"
+        ) from exc
 
 
 def score_issue(issue: dict[str, Any], cfg: dict[str, Any], now: datetime) -> tuple[int, list[str]]:
