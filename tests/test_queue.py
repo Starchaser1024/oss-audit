@@ -12,6 +12,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from oss_audit.scheduling import lease_store as ls
 from oss_audit.scheduling import queue as pq
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -364,6 +365,24 @@ class QueueTestCase(unittest.TestCase):
         finally:
             child.kill()
             child.wait(timeout=10)
+
+    def test_lease_store_wal_and_transaction_rollback_and_reexports(self):
+        self.assertIs(pq.SQLiteLeaseStore, ls.SQLiteLeaseStore)
+        self.assertIs(pq.StaleLease, ls.StaleLease)
+        self.assertIs(pq.InvalidResult, ls.InvalidResult)
+        self.assertIs(pq.QueueError, ls.QueueError)
+        self.assertIs(pq.stable_candidate_id, ls.stable_candidate_id)
+        self.assertTrue(issubclass(pq.PipelineQueue, ls.SQLiteLeaseStore))
+
+        store_db = self.dir / "lease-store-unit.db"
+        with ls.SQLiteLeaseStore(store_db) as store:
+            mode = store.conn.execute("PRAGMA journal_mode").fetchone()[0]
+            self.assertEqual(str(mode).lower(), "wal")
+            with self.assertRaises(RuntimeError):
+                with store._tx():
+                    store._event(1, "cand-1", "transient_before_crash", {"k": "v"})
+                    raise RuntimeError("abort transaction")
+            self.assertEqual(store.events(), [])
 
 
 if __name__ == "__main__":

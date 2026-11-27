@@ -1,5 +1,6 @@
 """Bounded SQLite task queue, lease fencing, tick worker coordinator, and worktree isolation."""
 
+from oss_audit.scheduling.lease_store import SQLiteLeaseStore
 from oss_audit.scheduling.prep import prepare
 from oss_audit.scheduling.queue import (
     PRODUCTION_DB,
@@ -20,6 +21,7 @@ __all__ = [
     "InvalidResult",
     "PipelineQueue",
     "QueueError",
+    "SQLiteLeaseStore",
     "SchedulerError",
     "StaleLease",
     "my_identity",

@@ -60,7 +60,7 @@ oss-audit/
 ├── ledger.json          # Historical candidate triage, claim, and upstream submission ledger
 ├── examples/            # Verified upstream issue reports, PR writeups, and issue-only routing artifacts
 ├── docs/                # Architecture, evidence schema, policy routing, and scheduler specifications
-└── tests/               # 157 unit and subprocess integration tests + pinned counterexample & dossier fixtures
+└── tests/               # 168 unit and subprocess integration tests + pinned counterexample & dossier fixtures
 ```
 
 ---
@@ -146,7 +146,7 @@ Curated issue reports, PR writeups, and `issue_only` contract artifacts (such as
 ## Running Tests & Verification
 
 ```bash
-# Run full unit and subprocess receipt integration suite (157 tests)
+# Run full unit and subprocess receipt integration suite (168 tests)
 python -m pytest -q
 
 # Replay historical counterexamples, candidate falsification suite, and policy routing checks

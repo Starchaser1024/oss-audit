@@ -4,9 +4,9 @@
 
 ---
 
-## 1. SQLite Coordinator (`oss_audit.scheduling.queue`)
+## 1. SQLite Coordinator (`oss_audit.scheduling.lease_store` & `oss_audit.scheduling.queue`)
 
-State is persisted in `<workspace>/queue/pipeline.db` across four tables:
+Low-level WAL journaling, `BEGIN IMMEDIATE` transaction locking, and PID+creation-time lease fencing reside in `oss_audit.scheduling.lease_store`, while `oss_audit.scheduling.queue` owns task state transitions. State is persisted in `<workspace>/queue/pipeline.db` across four tables:
 
 | Table | Responsibility |
 |---|---|
